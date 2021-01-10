@@ -760,9 +760,18 @@ Else
     End With
 
     Range("D" & TS_MaxDefaultRows + 2).Value = "*** STOP - Use the Adjust Rows to Add More Lines"
+    
 End If
 
+' 3.17 fix to clear cell Timesheet.A2:B2 ONLY if not containing user data.
+    
+If Range("A2") = "" Then
 
+    Range("A2:B2").Select
+    Selection.ClearContents
+
+End If
+    
     Range("O:AR").EntireColumn.Hidden = True  ' Hide Columns
     
     Columns("A").ColumnWidth = 12#   '89 pixels
