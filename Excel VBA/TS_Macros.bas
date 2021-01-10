@@ -415,6 +415,7 @@ End Sub
 Sub TS_HideSheets()
 ' Hide Sheets for normal use
     
+    Sheets("Instructions").Visible = xlSheetHidden
     Sheets("Dropdown_Entries").Visible = xlSheetHidden
     Sheets("Macro Warning").Visible = xlSheetHidden
     Sheets("ExecutionTimes").Visible = xlSheetHidden
@@ -426,6 +427,7 @@ End Sub
 Sub TS_UnhideSheets()
 ' Unhide Sheets for developer use
     
+    Sheets("Instructions").Visible = True
     Sheets("Labor_Flex980").Visible = True
     Sheets("Labor_Flex980_2weeks").Visible = True
     Sheets("Dropdown_Entries").Visible = True
@@ -449,12 +451,13 @@ Sub TS_CleanForDistribution()
 
     Call TS_ClearLM_Command_Media
     Call TS_ClearDirections
-    Call TS_ClearInstructions
     Call TS_ClearConfiguration
     
     ' Must redo because Developer Mode resets the protections
     Call TS_UnprotectSheets
     Call TS_UnhideSheets
+    
+    Call TS_ClearInstructions
     
     Call TS_ClearSummary
     Call TS_ClearTimesheet
@@ -1253,3 +1256,15 @@ Private Sub TS_Import_Close_Workbook()
         Workbooks(DataBookName).Close SaveChanges:=False
     End If
 End Sub
+
+Function CCTrim(ChargeCode)
+' Need to remove the trailing spaces from the charge codes / work packages
+' without removing any of the spaces in the middle of the code
+
+' RTRIM does just that, but is available only in VBA and not as an Excel function
+' TRIM will remove multiple internal spaces, corrupting AD          MET
+' CLEAN will not remove trailing spaces
+
+CCTrim = RTrim(ChargeCode)
+
+End Function
