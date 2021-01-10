@@ -564,6 +564,9 @@ Sub TS_ClearConfiguration()
     Range("ImportConfig").Value = "X"                 ' Import Configuration
     Range("ImportWP").Value = "X"                 ' Import WP #'s
     Range("ImportTimesheet").Value = "X"                 ' Import Timesheet
+    
+    Range("WP_Dropdown").Select             ' Clear extra WP drop down list sorting
+    Selection.ClearContents
 
     Range("M:W").EntireColumn.Hidden = True  ' Hide Columns
     
@@ -576,7 +579,7 @@ Sub TS_ClearConfiguration()
     
     Columns("A").ColumnWidth = 21.57 '156 pixels
     Columns("C").ColumnWidth = 10.14 '76 pixels
-    Columns("E").ColumnWidth = 15.71 '115 pixels
+    Columns("E").ColumnWidth = 20#   '145 pixels
     Columns("G").ColumnWidth = 14.57 '107 pixels
     Columns("I").ColumnWidth = 14.57 '107 pixels
     Columns("K").ColumnWidth = 14.57 '107 pixels
@@ -734,6 +737,32 @@ Else
     Worksheets("Timesheet").Range(tempRange).FillDown
 End If
 
+' Set up Blocker / Reminder Rows
+
+Range("G2").Select
+Selection.Copy
+   
+If Resize Then
+   
+    tempRange = "A" & TS_MaxRows + 1 & ":M" & TS_MaxRows + 3
+   
+    With Sheets("Timesheet").Range(tempRange)
+       .PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+    End With
+
+    Range("D" & TS_MaxRows + 2).Value = "*** STOP - Use the Adjust Rows to Add More Lines"
+
+Else
+    tempRange = "A" & TS_MaxDefaultRows + 1 & ":M" & TS_MaxDefaultRows + 3
+   
+    With Sheets("Timesheet").Range(tempRange)
+       .PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+    End With
+
+    Range("D" & TS_MaxDefaultRows + 2).Value = "*** STOP - Use the Adjust Rows to Add More Lines"
+End If
+
+
     Range("O:AR").EntireColumn.Hidden = True  ' Hide Columns
     
     Columns("A").ColumnWidth = 12#   '89 pixels
@@ -773,7 +802,7 @@ Sub TS_ClearLabor_Flex980()
     Sheets("Labor_Flex980").Select
     
 ' Reset Values
-    Range("K2").Value = "01/01/2017"          ' Payroll Week Ending Date
+    Range("K2").Value = "=TODAY()"           ' Payroll Week Ending Date
     Range("F7").Value = "40"                 ' Hours goal for week
     Range("G8").Formula = "=IF(G6="""",""X"","""")"  ' Fri Auto Select
     Range("H8").Value = "X"                  ' Sat Off
@@ -798,7 +827,7 @@ Sub TS_ClearLabor_Flex980_2weeks()
     Sheets("Labor_Flex980_2weeks").Select
     
 ' Reset Values
-    Range("Q2").Value = "01/01/2017"          ' Payroll Week Ending Date
+    Range("Q2").Value = "=TODAY()"           ' Payroll Week Ending Date
     Range("F7").Value = "40"                 ' Hours goal for week
     Range("M8").Formula = "=IF(M6="""",""X"","""")"    ' Fri Auto Select
     Range("N8").Value = "X"                  ' Sat Off
