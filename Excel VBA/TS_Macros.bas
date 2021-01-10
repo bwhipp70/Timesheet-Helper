@@ -522,7 +522,7 @@ Sub TS_ClearInstructions()
     Range("Single_Delay").Value = "1"                ' Delay
     Range("Double_Delay").Value = "2"                ' Double Delay
     Range("TEMPO_ShellHome_Suffix").Value = "#Shell-home"  ' Suffix for Shell Home Page
-    Range("TEMPO_TimeEntry_Suffix").Value = "#ZTPOTIMESHEET2-record"  ' Suffix for Time Entry Page
+    Range("TEMPO_TimeEntry_Suffix").Value = "#ZTPOTIMESHEET3-record"  ' Suffix for Time Entry Page
     Range("TEMPO_LoggedOff_URL").Value = "https://tempo.external.lmco.com/sap/public/bc/icf/logoff" ' URL for TEMPO logged off
     
 ' Return to Corner
@@ -863,13 +863,13 @@ Sub TS_ClearWPs()
     Range("B5").Value = "Lunch"          ' Shortcut
     Range("A6").Value = "-"             ' WP #
     Range("B6").Value = "Dinner"          ' Shortcut
-    Range("A7").Value = "V"             ' WP #
+    Range("A7").Value = "PA"             ' WP #
     Range("B7").Value = "Vacation"          ' Shortcut
-    Range("A8").Value = "PI"             ' WP #
+    Range("A8").Value = "PG"             ' WP #
     Range("B8").Value = "Sick"          ' Shortcut
-    Range("A9").Value = "H"             ' WP #
+    Range("A9").Value = "PS"             ' WP #
     Range("B9").Value = "Holiday"          ' Shortcut
-    Range("A10").Value = "HF"             ' WP #
+    Range("A10").Value = "PF"             ' WP #
     Range("B10").Value = "Floating Holiday"          ' Shortcut
     
     Range("B11:B150").Select
