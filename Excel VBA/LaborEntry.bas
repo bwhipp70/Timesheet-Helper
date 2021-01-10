@@ -2,19 +2,21 @@ Option Explicit
 '
 'If desired screen does not appear in TimeOut seconds, abort the operation
 Public TimeOut
-Private Const DefaultTimeOut = 30
+Public Const DefaultTimeOut = 30
 '
 'Default delay in seconds to check when waiting for screen to appear
 Public SingleDelay As Integer
-Private Const DefaultSingleDelay = 1
+Public Const DefaultSingleDelay = 1
 Public DoubleDelay As Integer
-Private Const DefaultDoubleDelay = 2
+Public Const DefaultDoubleDelay = 2
 '
 'Temporarily store user User IDs and passwords
 Public RACFUserID
 Public RACFPassword
 'Enter all labor, or just rows with non-zero hours?
 Public AllLaborX
+'Show dialog when Labor Entry is completed?
+Public CompletedDialogX
 
 Sub LE_Enter_Labor_Flex980()
     Call IE_EnterLabor(Labor_Flex980_ShName)

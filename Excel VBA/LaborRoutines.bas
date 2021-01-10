@@ -221,16 +221,16 @@ Function Get_Last_Labor_Row(WorkSchedule)
         Get_Last_Labor_Row = -1
     End If
 End Function
-Sub Import_GetValues(theWorkbook, theSheet, colNumbers, theRow, Lastrow, theValues)
+Sub Import_GetValues_Old(theWorkbook, theSheet, colNumbers, theRow, lastRow, theValues)
 'remember: colNumbers is an 8-element array of integer with column numbers for:
 ' 0:FRI, 1:SAT, 2:SUN, 3:MON, 4:TUE, 5:WED, 6:THU, 7:FRI(2nd Friday)
 'If there isn't a 2nd Friday, set the column number to -1
 'remember: theValues is a 12-element array of variant
-' 0:Memo, 1:CHRG # OR CODE, 2:DEPT CHGD, 3:JOB CODE
+' 0:Memo, 1:CHRG # OR CODE/Charge Object, 2:DEPT CHGD/Ext, 3:JOB CODE/Shift
 ' 4:FRI, 5:SAT, 6:SUN, 7:MON, 8:TUE, 9:WED, 10:THU, 11:FRI
 'if theRow > lastRow then return empty strings in theValues
 Dim i
-    If theRow <= Lastrow Then
+    If theRow <= lastRow Then
         With Workbooks(theWorkbook).Sheets(theSheet)
             For i = 0 To 3
                 theValues(i) = .Cells(theRow, i + 2).Value
@@ -254,14 +254,48 @@ Dim i
         Next
     End If
 End Sub
-Sub Copy_GetValues(WorkSchedule, theRow, Lastrow, theValues)
+Sub Import_GetValues(theWorkbook, theSheet, colNumbers, theRow, lastRow, theValues)
+'remember: colNumbers is an 8-element array of integer with column numbers for:
+' 0:FRI, 1:SAT, 2:SUN, 3:MON, 4:TUE, 5:WED, 6:THU, 7:FRI(2nd Friday)
+'If there isn't a 2nd Friday, set the column number to -1
 'remember: theValues is a 12-element array of variant
-' 0:Memo, 1:CHRG # OR CODE, 2:DEPT CHGD, 3:JOB CODE
+' 0:Memo, 1:CHRG # OR CODE/Charge Object, 2:DEPT CHGD/Ext, 3:JOB CODE/Shift
+' 4:FRI, 5:SAT, 6:SUN, 7:MON, 8:TUE, 9:WED, 10:THU, 11:FRI
+'if theRow > lastRow then return empty strings in theValues
+Dim i
+    If theRow <= lastRow Then
+        With Workbooks(theWorkbook).Sheets(theSheet)
+            theValues(0) = .Cells(theRow, 2).Value
+            theValues(1) = .Cells(theRow, 3).Value
+            theValues(2) = .Cells(theRow, 5).Value
+            theValues(3) = .Cells(theRow, 6).Value
+            theValues(4) = .Cells(theRow, colNumbers(0)).Value  'FRI
+            theValues(5) = .Cells(theRow, colNumbers(1)).Value  'SAT
+            theValues(6) = .Cells(theRow, colNumbers(2)).Value  'SUN
+            theValues(7) = .Cells(theRow, colNumbers(3)).Value  'MON
+            theValues(8) = .Cells(theRow, colNumbers(4)).Value  'TUE
+            theValues(9) = .Cells(theRow, colNumbers(5)).Value  'WED
+            theValues(10) = .Cells(theRow, colNumbers(6)).Value 'THU
+            If colNumbers(7) < 0 Then
+                theValues(11) = "" 'leave 2nd Friday blank
+            Else
+                theValues(11) = .Cells(theRow, colNumbers(7)).Value '2nd Friday
+            End If
+        End With
+    Else
+        For i = 0 To 11
+            theValues(i) = ""
+        Next
+    End If
+End Sub
+Sub Copy_GetValues(WorkSchedule, theRow, lastRow, theValues)
+'remember: theValues is a 12-element array of variant
+' 0:Memo, 1:CHRG # OR CODE/Charge Object, 2:DEPT CHGD/Ext, 3:JOB CODE/Shift
 ' 4:FRI, 5:SAT, 6:SUN, 7:MON, 8:TUE, 9:WED, 10:THU, 11:FRI
 'if theRow > lastRow then return empty strings in theValues
 Dim theSheet
 Dim i
-    If theRow <= Lastrow Then
+    If theRow <= lastRow Then
         theSheet = Get_Work_Schedule_SheetName(WorkSchedule)
         If WorkSchedule = WorkSchedule_Flex980 Then
             For i = 0 To 1
@@ -289,7 +323,7 @@ Dim i
 End Sub
 Sub Copy_GetDaysOff(WorkSchedule, theValues)
 'remember: theValues is a 12-element array of variant
-' 0:Memo, 1:CHRG # OR CODE, 2:DEPT CHGD, 3:JOB CODE
+' 0:Memo, 1:CHRG # OR CODE/Charge Object, 2:DEPT CHGD/Ext, 3:JOB CODE/Shift
 ' 4:FRI, 5:SAT, 6:SUN, 7:MON, 8:TUE, 9:WED, 10:THU, 11:FRI
 ' We're only using 4 through 11 here
 Dim theSheet
@@ -314,7 +348,7 @@ Sub Cell_SetValue(theSheet, theRow, theCol, theValue)
 End Sub
 Sub Import_SetValues_Next_Week(WorkSchedule, theRow, theValues)
 'remember: theValues is a 12-element array of variant
-' 0:Memo, 1:CHRG # OR CODE, 2:DEPT CHGD, 3:JOB CODE
+' 0:Memo, 1:CHRG # OR CODE/Charge Object, 2:DEPT CHGD/Ext, 3:JOB CODE/Shift
 ' 4:FRI, 5:SAT, 6:SUN, 7:MON, 8:TUE, 9:WED, 10:THU, 11:FRI
 Dim theSheet
 Dim i, startCol
@@ -330,7 +364,7 @@ Dim i, startCol
 End Sub
 Sub Import_SetValues_Last_Week(WorkSchedule, theRow, theValues)
 'remember: theValues is a 12-element array of variant
-' 0:Memo, 1:CHRG # OR CODE, 2:DEPT CHGD, 3:JOB CODE
+' 0:Memo, 1:CHRG # OR CODE/Charge Object, 2:DEPT CHGD/Ext, 3:JOB CODE/Shift
 ' 4:FRI, 5:SAT, 6:SUN, 7:MON, 8:TUE, 9:WED, 10:THU, 11:FRI
 Dim theSheet
 Dim diffValue
@@ -349,7 +383,7 @@ Dim diffValue
 End Sub
 Sub Copy_SetValues(WorkSchedule, theRow, ByVal setAll, theValues)
 'remember: theValues is a 12-element array of variant
-' 0:Memo, 1:CHRG # OR CODE, 2:DEPT CHGD, 3:JOB CODE
+' 0:Memo, 1:CHRG # OR CODE/Charge Object, 2:DEPT CHGD/Ext, 3:JOB CODE/Shift
 ' 4:FRI, 5:SAT, 6:SUN, 7:MON, 8:TUE, 9:WED, 10:THU, 11:FRI
 'if setAll is false, don't set the first two elements (0 and 1)
 Dim theSheet
@@ -382,7 +416,7 @@ Dim sumValue
 End Sub
 Sub Copy_SetDaysOff(WorkSchedule, theValues)
 'remember: theValues is a 12-element array of variant
-' 0:Memo, 1:CHRG # OR CODE, 2:DEPT CHGD, 3:JOB CODE
+' 0:Memo, 1:CHRG # OR CODE/Charge Object, 2:DEPT CHGD/Ext, 3:JOB CODE/Shift
 ' 4:FRI, 5:SAT, 6:SUN, 7:MON, 8:TUE, 9:WED, 10:THU, 11:FRI
 ' We're only using 4 through 11 here
 Dim theSheet
@@ -400,7 +434,7 @@ Dim i
 End Sub
 Sub Import_SetDaysOff_Next_Week(WorkSchedule, theValues)
 'remember: theValues is a 12-element array of variant
-' 0:Memo, 1:CHRG # OR CODE, 2:DEPT CHGD, 3:JOB CODE
+' 0:Memo, 1:CHRG # OR CODE/Charge Object, 2:DEPT CHGD/Ext, 3:JOB CODE/Shift
 ' 4:FRI, 5:SAT, 6:SUN, 7:MON, 8:TUE, 9:WED, 10:THU, 11:FRI
 ' We're only using 4 through 11 here
 Dim theSheet
@@ -416,7 +450,7 @@ Dim i
 End Sub
 Sub Import_SetDaysOff_Last_Week(WorkSchedule, theValues)
 'remember: theValues is a 12-element array of variant
-' 0:Memo, 1:CHRG # OR CODE, 2:DEPT CHGD, 3:JOB CODE
+' 0:Memo, 1:CHRG # OR CODE/Charge Object, 2:DEPT CHGD/Ext, 3:JOB CODE/Shift
 ' 4:FRI, 5:SAT, 6:SUN, 7:MON, 8:TUE, 9:WED, 10:THU, 11:FRI
 ' We're only using 4 through 11 here
 Dim theSheet
@@ -655,6 +689,68 @@ Dim i
                         supportedFile = True 'bypass "not a supported import format" error dialog
                     End If
                 End If
+            ElseIf (Workbooks(DataBookName).Sheets.Count = 6) Then
+                If (Workbooks(DataBookName).Sheets(1).Name = "Instructions") And _
+                    (Workbooks(DataBookName).Sheets(2).Name = "Labor_Flex980") And _
+                    (Workbooks(DataBookName).Sheets(3).Name = "Labor_Flex980_2weeks") And _
+                    (Workbooks(DataBookName).Sheets(4).Name = "Simple Labor Adjustment") Then
+                    'file is an UpTEMPO file - 1.0 series
+                    fromWorkSchedule = Workbooks(DataBookName).Sheets(1).Range("WorkSchedule_Selected").Value
+                    fromSheetName = Get_Work_Schedule_SheetName(fromWorkSchedule)
+                    If fromSheetName <> "" Then
+                        With Workbooks(DataBookName).Sheets(fromSheetName)
+                            If (.Range("B9").Value = "Memo") And _
+                                (.Range("C9").Value = "Charge Object") And _
+                                (.Range("D9").Value = "Object Length") And _
+                                (.Range("E9").Value = "Ext") And _
+                                (.Range("F9").Value = "Shift") Then
+                                'valid Labor sheet (Flex 9/80 or Flex 9/80 2 weeks) so far
+                                fromFirstLaborRow = 10
+                                fromLastLaborRow = .Cells(.Rows.Count, 3).End(xlUp).Row
+                                If (.Range("G9").Value = "FRI") And _
+                                    (.Range("H9").Value = "SAT") And _
+                                    (.Range("I9").Value = "SUN") And _
+                                    (.Range("J9").Value = "MON") And _
+                                    (.Range("K9").Value = "TUE") And _
+                                    (.Range("L9").Value = "WED") And _
+                                    (.Range("M9").Value = "THU") And _
+                                    (.Range("N9").Value = "FRI") Then
+                                    'This is the Flex 9/80 sheet
+                                    supportedFile = True
+                                    Continue_Import = True
+                                    fromSuperSTAR = False
+                                    Call SetColNumbers(7, 8, 9, 10, 11, 12, 13, 14, colNumbers)
+                                    weekEndingDate = .Range("K2").Value
+                                ElseIf (.Range("M9").Value = "FRI") And _
+                                    (.Range("N9").Value = "SAT") And _
+                                    (.Range("O9").Value = "SUN") And _
+                                    (.Range("P9").Value = "MON") And _
+                                    (.Range("Q9").Value = "TUE") And _
+                                    (.Range("R9").Value = "WED") And _
+                                    (.Range("S9").Value = "THU") And _
+                                    (.Range("T9").Value = "FRI") Then
+                                    'This is the Flex 9/80 2 weeks sheet
+                                    supportedFile = True
+                                    Continue_Import = True
+                                    fromSuperSTAR = False
+                                    Call SetColNumbers(13, 14, 15, 16, 17, 18, 19, 20, colNumbers)
+                                    importNextWeek = True
+                                    Call SetColNumbers(25, 26, 27, 28, 29, 30, 31, 32, colNumbersNextWeek)
+                                    importLastWeek = True
+                                    Call SetColNumbers(8, 9, 9, 9, 9, 9, 9, 9, colNumbersLastWeek)
+                                    weekEndingDate = .Range("Q2").Value
+                                End If
+                            End If
+                        End With
+                    Else
+                        Workbooks(DataBookName).Activate
+                        Sheets("Instructions").Select
+                        Range("WorkSchedule_Selected").Select
+                        result = MsgBox("Unknown Work Schedule in file" & Chr(13) & _
+                            """" & DataBookName & """!", vbExclamation)
+                        supportedFile = True 'bypass "not a supported import format" error dialog
+                    End If
+                End If
             ElseIf (Workbooks(DataBookName).Sheets.Count >= 3) Then
                 If (Workbooks(DataBookName).Sheets(1).Name = "Instructions") And _
                     (Workbooks(DataBookName).Sheets(2).Name = "Labor") And _
@@ -711,9 +807,14 @@ Dim i
                 Else
                     Set_Calculation (False) 'turn off automatic calculation to speed up import
                     If fromSuperSTAR Then
+                        'start with labor entries two rows up
                         fromRow = fromFirstLaborRow - 2
                     Else
+                        'start with labor entries on this row
                         fromRow = fromFirstLaborRow
+                        'but first, transfer Day Off values
+                        Call Import_GetValues(DataBookName, fromSheetName, colNumbers, fromRow - 2, fromLastLaborRow, theValues)
+                        Call Copy_SetDaysOff(WorkSchedule, theValues)
                     End If
                     toRow = toFirstLaborRow
                     Do While toRow <= toLastLaborRow
@@ -765,6 +866,8 @@ Dim i
                                 fromRow = fromFirstLaborRow - 2
                             Else
                                 fromRow = fromFirstLaborRow
+                                Call Import_GetValues(DataBookName, fromSheetName, colNumbersNextWeek, fromRow - 2, fromLastLaborRow, theValues)
+                                Call Import_SetDaysOff_Next_Week(WorkSchedule, theValues)
                             End If
                             toRow = toFirstLaborRow
                             Do While toRow <= toLastLaborRow
@@ -794,6 +897,8 @@ Dim i
                                 fromRow = fromFirstLaborRow - 2
                             Else
                                 fromRow = fromFirstLaborRow
+                                Call Import_GetValues(DataBookName, fromSheetName, colNumbersLastWeek, fromRow - 2, fromLastLaborRow, theValues)
+                                Call Import_SetDaysOff_Last_Week(WorkSchedule, theValues)
                             End If
                             toRow = toFirstLaborRow
                             Do While toRow <= toLastLaborRow
@@ -942,6 +1047,14 @@ Sub CleanForDistribution()
     'Reset the goals to 40 hours
     Sheets(Labor_Flex980_ShName).Range("F7") = 40
     Sheets(Labor_Flex980_2weeks_ShName).Range("F7") = 40
+    'Set default Configuration values on Instructions sheet
+    Sheets(Instructions_ShName).Select
+    Range("AllLabor_X").Value = ""
+    Range("MacroWarning_X").Value = "X"
+    Range("CompletedDialog_X").Value = "X"
+    Range("Timeout_Delay").Value = DefaultTimeOut
+    Range("Single_Delay").Value = DefaultSingleDelay
+    Range("Double_Delay").Value = DefaultDoubleDelay
     'Set scroll and selected cell on Instructions sheet
     Sheets(Instructions_ShName).Select
     Range("A3").Select 'scroll the instructions sheet to the top (the section below the frozen top 2 rows)

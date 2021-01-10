@@ -143,11 +143,15 @@ Sub IE_EnterLabor(CallingSheet)
         Loop Until iRow > LastEntryRow
         'delete extra labor lines at end
         Call IE_DeleteRows_TEMPO(objIE, iEntries)
-        
-        Call IE_Save_TEMPO(objIE)
+        'unable to click the save button at this time
+        'Call IE_Save_TEMPO(objIE)
         'pause briefly before returning to Excel
         Call IE_Wait(1)
         Excel_Activate
+        If (CompletedDialogX <> "") Then
+            result = MsgBox("Labor entry completed!" & Chr(10) & Chr(10) & _
+                "Remember to review the labor and click the Save button in TEMPO.", vbInformation)
+        End If
     Else
         'not at Attendance & Labor Input page
         Excel_Activate
@@ -163,6 +167,7 @@ Sub IE_GetUserValues(CallingSheet)
 '
     URL_TEMPO = Range("TEMPO_URL").Value
     AllLaborX = Range("AllLabor_X").Value
+    CompletedDialogX = Range("CompletedDialog_X").Value
     Call LE_GetUserValues(CallingSheet)
 End Sub
 Function IE_Find_Or_Open_TEMPO() As Object
@@ -576,6 +581,7 @@ Sub IE_TimeEntry_TEMPO()
 ' Go to the Time Entry screen in TEMPO
 '
     Dim objIE As Object
+    Dim waitTime As Integer
     
     'Get the current web browser session
     Set objIE = IE_Find_TEMPO()
@@ -583,82 +589,16 @@ Sub IE_TimeEntry_TEMPO()
     Call IE_Activate(objIE)
     'Navigate to Time Entry
     objIE.Navigate URL_TEMPO & Suffix_Time_Entry
+    'Wait for page to load
+    Call IE_Wait_Until_Done(objIE)
+    'Check whether page is loaded
+    waitTime = 0
+    Do While (IE_GetWEDate_TEMPO(objIE) = "") And (waitTime < TimeOut)
+        'Wait a little longer
+        Call IE_Wait(DoubleDelay)
+        waitTime = waitTime + DoubleDelay
+    Loop
     
-End Sub
-Sub IE_Logon_STARS(CallingSheet, signOffSignOn As Boolean)
-' Enter login credentials at Logon screen in STARS
-'
-    Dim objIE As Object
-    Dim objDocument As Object
-    Dim objElement As Object
-    Dim objOption As Object
-    Dim theRow
-    Dim theText
-    Dim theValue
-    Dim theIndex
-
-    Excel_Activate
-    If RACFPassword = "" Then
-        Load PW_Entry_Form
-        PW_Entry_Form.StartUpPosition = 0
-        PW_Entry_Form.Top = Application.Top + 65
-        PW_Entry_Form.Left = Application.Left + 65
-        PW_Entry_Form.Show
-    End If
-    If RACFPassword = "" Then
-        Sheets(CallingSheet).Select
-        IE_Finish
-    End If
-    
-    'Get the current web browser session
-    Set objIE = IE_Find_STARS()
-    'Bring it to the front
-    Call IE_Activate(objIE)
-    'Prevent dialog boxes from being displayed
-    objIE.Silent = True
-    'Get the document object
-    Set objDocument = objIE.Document
-    
-    'Set the Business Unit
-    '(also fill in the business unit list on the Dropdown_Entries sheet)
-    Set objElement = objDocument.GetElementsByName("businessUnitId")
-    If objElement.Item(0).nodeName = "SELECT" Then
-        theRow = -1
-        theValue = 0
-        For Each objOption In objElement.Item(0)
-            theText = objOption.Text
-            theRow = theRow + 1
-            Range("Business_Unit_First_Entry").Offset(theRow, 0).Value = theText
-            If theText = STARSBusinessUnit Then
-                theValue = objOption.Value
-            End If
-        Next objOption
-        'set the desired value
-        objElement.Item(0).Value = theValue
-        'update the range for the drop-down menu:
-        theText = Names("Business_Unit_List").Value
-        theIndex = InStr(theText, "!")
-        If theIndex > 0 Then
-            Names("Business_Unit_List").Value = Left(theText, theIndex) & _
-                Range(Range("Business_Unit_First_Entry"), _
-                Range("Business_Unit_First_Entry").Offset(theRow, 0)).Address
-        End If
-    End If
-    
-    If (Not signOffSignOn) Or (objIE.LocationURL = URL_STARS_External_SignOffSignOn) Then
-        'Set the User ID
-        Set objElement = objDocument.GetElementsByName("racfId")
-        objElement.Item(0).Value = RACFUserID
-        
-        'Set the Password
-        Set objElement = objDocument.GetElementsByName("racfPassword")
-        objElement.Item(0).Value = RACFPassword
-    End If
-        
-        'Click the Logon button
-        Set objElement = objDocument.GetElementsByName("ancLogon")
-        objElement.Item(0).Click
-
 End Sub
 Sub IE_Wait(theDelaySeconds As Integer)
     Application.Wait DateAdd("s", theDelaySeconds, Now)
@@ -776,7 +716,7 @@ Sub IE_Activate(objIE As Object)
     
     objIE.Visible = True
     windowName = objIE.Document.Title
-    'this doesn't work when STARS is in a tab in IE that is not currently selected
+    'this doesn't work when TEMPO is in a tab in IE that is not currently selected
     'but we'll wrap it with an error handler so we can continue anyway
     On Error Resume Next
     AppActivate (windowName)
@@ -791,7 +731,7 @@ Sub IE_SendKeys(objIE As Object, theString As String)
     
     objIE.Visible = True
     windowName = objIE.Document.Title
-    'this doesn't work when STARS is in a tab in IE that is not currently selected
+    'this doesn't work when TEMPO is in a tab in IE that is not currently selected
     'but we'll wrap it with an error handler so we can continue anyway
     On Error Resume Next
     AppActivate (windowName)
