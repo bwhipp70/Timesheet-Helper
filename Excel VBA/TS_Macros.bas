@@ -800,9 +800,13 @@ Sub TS_ClearLabor_Flex980()
 ' Reset the Week Ending Date, everything else is Protected
 
     Sheets("Labor_Flex980").Select
-    
+
+'******************
+'* Changed default K2 formula to show the Sunday of the current TODAY week.
+'******************
+
 ' Reset Values
-    Range("K2").Value = "=TODAY()"           ' Payroll Week Ending Date
+    Range("K2").Value = "=TODAY()+MOD(8-WEEKDAY(TODAY()),7)"           ' Payroll Week Ending Date, Was =TODAY()
     Range("F7").Value = "40"                 ' Hours goal for week
     Range("G8").Formula = "=IF(G6="""",""X"","""")"  ' Fri Auto Select
     Range("H8").Value = "X"                  ' Sat Off
@@ -826,8 +830,12 @@ Sub TS_ClearLabor_Flex980_2weeks()
 
     Sheets("Labor_Flex980_2weeks").Select
     
+'******************
+'* Changed default K2 formula to show the Sunday of the current TODAY week.
+'******************
+   
 ' Reset Values
-    Range("Q2").Value = "=TODAY()"           ' Payroll Week Ending Date
+    Range("Q2").Value = "=TODAY()+MOD(8-WEEKDAY(TODAY()),7)"           ' Payroll Week Ending Date, Was =TODAY()
     Range("F7").Value = "40"                 ' Hours goal for week
     Range("M8").Formula = "=IF(M6="""",""X"","""")"    ' Fri Auto Select
     Range("N8").Value = "X"                  ' Sat Off
@@ -1402,3 +1410,22 @@ Function CCTrim(ChargeCode)
 CCTrim = RTrim(ChargeCode)
 
 End Function
+
+Sub TS_ThisWeek_980()
+' Added a macro to reset the date formula to the default
+
+    Sheets("Labor_Flex980").Select
+
+' Reset Values
+    Range("K2").Value = "=TODAY()+MOD(8-WEEKDAY(TODAY()),7)"           ' Payroll Week Ending Date, Was =TODAY()
+
+End Sub
+Sub TS_ThisWeek_980_2wks()
+' Added a macro to reset the date formula to the default
+
+    Sheets("Labor_Flex980_2weeks").Select
+    
+' Reset Values
+    Range("Q2").Value = "=TODAY()+MOD(8-WEEKDAY(TODAY()),7)"           ' Payroll Week Ending Date, Was =TODAY()
+
+End Sub
