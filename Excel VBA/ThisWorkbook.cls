@@ -74,7 +74,9 @@ Private Sub Workbook_SheetActivate(ByVal Sh As Object)
     End If
 End Sub
 Private Sub Workbook_SheetCalculate(ByVal Sh As Object)
-    isClosing = False
+' Removing the flag being set, causes a VBA Error Code 400 when another Workbook is open
+' V3.15
+'    isClosing = False
 End Sub
 Private Sub Workbook_SheetChange(ByVal Sh As Object, ByVal Target As Range)
     If Not ignoreChanges Then
