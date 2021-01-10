@@ -855,30 +855,135 @@ Sub TS_ClearWPs()
 ' Set Intial Values
     Range("A2").Value = "-"             ' WP #
     Range("B2").Value = "NOTE"          ' Shortcut
+    Range("C2").Value = "Placeholder for a Note (No WP)"          ' Description
+  
     Range("A3").Value = "-"             ' WP #
     Range("B3").Value = "Break"          ' Shortcut
+    Range("C3").Value = "Placeholder for a Break (No WP)"          ' Description
+    
     Range("A4").Value = "-"             ' WP #
     Range("B4").Value = "Breakfast"          ' Shortcut
+    Range("C4").Value = "Placeholder for Breakfast (No WP)"          ' Description
+    
     Range("A5").Value = "-"             ' WP #
     Range("B5").Value = "Lunch"          ' Shortcut
+    Range("C5").Value = "Placeholder for Lunch (No WP)"          ' Description
+    
     Range("A6").Value = "-"             ' WP #
     Range("B6").Value = "Dinner"          ' Shortcut
+    Range("C6").Value = "Placeholder for Dinner (No WP)"          ' Description
+    
     Range("A7").Value = "PA"             ' WP #
     Range("B7").Value = "Vacation"          ' Shortcut
+    Range("C7").Value = "Vacation - Accrued Paid Time Off (PA)"          ' Description
+    
     Range("A8").Value = "PG"             ' WP #
     Range("B8").Value = "Sick"          ' Shortcut
+    Range("C8").Value = "Sick Time / Personal Business - Granted Paid Time Off (PG)"          ' Description
+    
     Range("A9").Value = "PS"             ' WP #
     Range("B9").Value = "Holiday"          ' Shortcut
+    Range("C9").Value = "Holiday - Fixed Paid Time Off (PS)"          ' Description
+    
     Range("A10").Value = "PF"             ' WP #
     Range("B10").Value = "Floating Holiday"          ' Shortcut
+    Range("C10").Value = "Floating Holiday - Floating Paid Time Off (PF)"          ' Description
     
-    Range("B11:B150").Select
+    
+' 2018 Training Charge Numbers
+    
+    Range("A11").Value = "SC"             ' WP #
+    Range("B11").Value = ""          ' Shortcut
+    Range("C11").Value = "Security Training"          ' Description
+    
+    Range("A12").Value = "TC"             ' WP #
+    Range("B12").Value = ""          ' Shortcut
+    Range("C12").Value = "Ethics & Business Compliance (Ex: BCCT)"          ' Description
+    
+    Range("A13").Value = "TR          REQ"             ' WP #
+    Range("B13").Value = ""          ' Shortcut
+    Range("C13").Value = "Corporate or RMS Required Training (Ex: Import/Export, CAM)"          ' Description
+    
+    Range("A14").Value = "TR          MGT"             ' WP #
+    Range("B14").Value = ""          ' Shortcut
+    Range("C14").Value = "Leadership Training (CLE,FSL)"          ' Description
+
+    Range("A15").Value = "TR          FEL"             ' WP #
+    Range("B15").Value = ""          ' Shortcut
+    Range("C15").Value = "LM Fellows Conference"          ' Description
+    
+    Range("A16").Value = "TR          EPD"             ' WP #
+    Range("B16").Value = ""          ' Shortcut
+    Range("C16").Value = "New Development Enterprise Product Data Management"          ' Description
+    
+    Range("A17").Value = "TR          EPM"             ' WP #
+    Range("B17").Value = ""          ' Shortcut
+    Range("C17").Value = "Engineering Project Management Training"          ' Description
+
+    Range("A18").Value = "TR          TOP"             ' WP #
+    Range("B18").Value = ""          ' Shortcut
+    Range("C18").Value = "Top Gun (IWSS, TLS, SAC-Helo, C4USS-TBD)"          ' Description
+
+    Range("A19").Value = "TR          CYB"             ' WP #
+    Range("B19").Value = ""          ' Shortcut
+    Range("C19").Value = "Cyber Training"          ' Description
+
+    Range("A20").Value = "TR          DEV"             ' WP #
+    Range("B20").Value = ""          ' Shortcut
+    Range("C20").Value = "Course Development"          ' Description
+
+    Range("A21").Value = "TR          NEO"             ' WP #
+    Range("B21").Value = ""          ' Shortcut
+    Range("C21").Value = "New Employee Orientation"          ' Description
+
+    Range("A22").Value = "TR          CON"             ' WP #
+    Range("B22").Value = ""          ' Shortcut
+    Range("C22").Value = "Conferences"          ' Description
+
+    Range("A23").Value = "TR          TRN"             ' WP #
+    Range("B23").Value = ""          ' Shortcut
+    Range("C23").Value = "General Technical Training"          ' Description
+
+    Range("A24").Value = "TR          DDA"             ' WP #
+    Range("B24").Value = ""          ' Shortcut
+    Range("C24").Value = "DDE - Agile"          ' Description
+
+    Range("A25").Value = "TR          DDT"             ' WP #
+    Range("B25").Value = ""          ' Shortcut
+    Range("C25").Value = "DDE - Automation"         ' Description
+
+    Range("A26").Value = "TR          DDM"             ' WP #
+    Range("B26").Value = ""          ' Shortcut
+    Range("C26").Value = "DDE - Model Based Engineering"         ' Description
+
+    Range("A27").Value = "TR          DDE"             ' WP #
+    Range("B27").Value = ""          ' Shortcut
+    Range("C27").Value = "Digital Development Environment - DDE Other"         ' Description
+
+    Range("A28").Value = "TR          ADQ"             ' WP #
+    Range("B28").Value = ""          ' Shortcut
+    Range("C28").Value = "Architect Development & Qualification Pgm"         ' Description
+
+    Range("A29").Value = "TR          SED"             ' WP #
+    Range("B29").Value = ""          ' Shortcut
+    Range("C29").Value = "Systems Engineering Development & Qualification Pgm"         ' Description
+
+    Range("A30").Value = "TR          ESP"             ' WP #
+    Range("B30").Value = ""          ' Shortcut
+    Range("C30").Value = "Embedded Systems Program"         ' Description
+
+    Range("A25").Value = "TR          COR"             ' WP #
+    Range("B25").Value = ""          ' Shortcut
+    Range("C25").Value = "Training Coordination/Administration"         ' Description
+
+    
+    Range("B26:B150").Select
     Selection.ClearContents
    
-    Range("C2:G150").Select
+    Range("C26:G150").Select
     Selection.ClearContents
     
-    Range("A11:A150").Value = "_blank_"
+    Range("A26:A150").Value = "_blank_"
     
     Range("I:I").EntireColumn.Hidden = True  ' Hide Columns
     
