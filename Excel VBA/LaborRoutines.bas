@@ -100,6 +100,7 @@ Dim result
     End If
 End Sub
 Sub ClearLaborHours_Flex980()
+Dim theDate
     Sheets(Labor_Flex980_ShName).Select
     'clear labor hours
     Range("G" & FirstLaborRow_Flex980 & ":N" & LastLaborRow_Flex980).ClearContents
@@ -107,6 +108,17 @@ Sub ClearLaborHours_Flex980()
     Range("G8:N8").ClearContents
     Range("H8") = "X" 'Sat
     Range("I8") = "X" 'Sun
+    'update Off Friday
+    If UCase(Range("N7").Value) = "OFF" Then
+        Range("N7") = ""
+        Range("G8") = "X" 'first Fri
+    Else
+        Range("N7") = "Off"
+        Range("N8") = "X" 'second Fri
+    End If
+    'update Week Ending date
+    theDate = Range("K2").Value
+    Range("K2").Value = theDate + 7
     'select top left cell in scrolling region (reset scroll to top left)
     Range("G10").Select
 End Sub
@@ -137,6 +149,14 @@ Sub ClearLaborHours_Flex980_2weeks()
     Range("O8") = "X" 'Sun
     Call ClearLaborHours_Flex980_2weeks_Last_Week
     Call ClearLaborHours_Flex980_2weeks_Next_Week
+    'update Days Off for Off Fridays
+    If UCase(Range("T7").Value) = "OFF" Then
+        Range("T8") = "X" 'second Fri this week
+        Range("Y8") = "X" 'first Fri next week
+    Else
+        Range("M8") = "X" 'first Fri this week
+        Range("AF8") = "X" 'second Fri next week
+    End If
     'select top left cell in scrolling region (reset scroll to top left)
     Range("G10").Select
     'select first data entry cell for this week
@@ -164,6 +184,14 @@ Dim theDate
     Range("M" & FirstLaborRow_Flex980_2weeks & ":T" & LastLaborRow_Flex980_2weeks).PasteSpecial Paste:=xlPasteValues
     'clear labor hours from week 2
     Call ClearLaborHours_Flex980_2weeks_Next_Week
+    'update Off Friday
+    If UCase(Range("T7").Value) = "OFF" Then
+        Range("T7") = ""
+        Range("AF8") = "X" 'second Fri next week
+    Else
+        Range("T7") = "Off"
+        Range("Y8") = "X" 'first Fri next week
+    End If
     'copy date from week 2 to week 1
     theDate = Range("AC2").Value
     Range("Q2") = theDate
@@ -1000,6 +1028,8 @@ Dim result
     End If
 End Sub
 Private Sub UnprotectSheets()
+    'Make sure this workbook is the active workbook
+    Call Workbook_Activate
     'Unhide sheets that are normally hidden
     Sheets(Labor_Flex980_ShName).Visible = True
     Sheets(Labor_Flex980_2weeks_ShName).Visible = True
@@ -1015,6 +1045,8 @@ Sub ProtectSheet(sheetName)
     Sheets(sheetName).Protect DrawingObjects:=True, Contents:=True, Scenarios:=True, AllowFormattingColumns:=True
 End Sub
 Sub ProtectSheets()
+    'Make sure this workbook is the active workbook
+    Call Workbook_Activate
     'Make sure sheets are protected
     Sheets(Instructions_ShName).Protect DrawingObjects:=True, Contents:=True, Scenarios:=True
     Call ProtectSheet(Labor_Flex980_ShName)
@@ -1027,15 +1059,24 @@ Sub ProtectSheets()
 End Sub
 Sub CleanForDistribution()
 ' Clears data to prepare workbook for distribution to others
+    'Make sure this workbook is the active workbook
+    Call Workbook_Activate
     'Make sure sheets are protected
     Call ProtectSheets
     'Unhide sheets to clear them
     Sheets(Labor_Flex980_ShName).Visible = True
     Sheets(Labor_Flex980_2weeks_ShName).Visible = True
     Sheets(Dropdown_Entries_ShName).Visible = True
-    'Clear contents
+    'Clear contents of Labor Adjustment sheet
     Call ClearLaborAdjustment
+    'Use Flex980_2weeks as master date and schedule
+    'copy Last Week Ending date from Flex980_2weeks sheet to "current" date on Flex980 sheet
+    Sheets(Labor_Flex980_ShName).Range("K2").Value = Sheets(Labor_Flex980_2weeks_ShName).Range("H2").Value
+    'copy Last Week's Off Friday status from Flex980_2weeks sheet to Flex980 sheet
+    Sheets(Labor_Flex980_ShName).Range("N7").Value = Sheets(Labor_Flex980_2weeks_ShName).Range("H7").Value
+    'Clear contents of Flex980 sheet (also increments date and toggles Off Friday)
     Call ClearLaborHours_Flex980
+    'Clear contents of Flex980_2weeks sheet
     Call ClearLaborHours_Flex980_2weeks
     'Make sure sheets are protected (also re-hides sheets that should be hidden)
     Call ProtectSheets
@@ -1049,6 +1090,10 @@ Sub CleanForDistribution()
     Sheets(Labor_Flex980_2weeks_ShName).Range("F7") = 40
     'Set default Configuration values on Instructions sheet
     Sheets(Instructions_ShName).Select
+    Range("TEMPO_URL").Value = Default_URL_TEMPO
+    Range("TEMPO_ShellHome_Suffix").Value = Default_Suffix_Shell_Home
+    Range("TEMPO_TimeEntry_Suffix").Value = Default_Suffix_Time_Entry
+    Range("TEMPO_LoggedOff_URL").Value = Default_URL_LoggedOff
     Range("AllLabor_X").Value = ""
     Range("MacroWarning_X").Value = "X"
     Range("CompletedDialog_X").Value = "X"

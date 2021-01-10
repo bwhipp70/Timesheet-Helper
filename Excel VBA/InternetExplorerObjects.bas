@@ -5,10 +5,30 @@ Option Explicit
 '  the “Microsoft Internet Controls” reference. Click the checkbox to the
 '  left of it, and then click OK.
 '
-' URL for TEMPO
+' URLs for TEMPO
 '
 Public URL_TEMPO As String
-Const Suffix_Time_Entry = "#ZTPOTIMESHEET2-record"
+Public Suffix_Shell_Home As String
+Public Suffix_Time_Entry As String
+Public URL_LoggedOff As String
+
+Public Const Default_URL_TEMPO = "https://tempofdb.external.lmco.com/fiori"
+Public Const Default_Suffix_Shell_Home = "#Shell-home"
+Public Const Default_Suffix_Time_Entry = "#ZTPOTIMESHEET2-record"
+Public Const Default_URL_LoggedOff = "https://tempofdb.external.lmco.com/sap/public/bc/icf/logoff"
+'
+' Keep track of whether TEMPO time entry sheet has "WD Job" field
+'  default is empty string (need to check), "Y" if yes, and "N" if no
+'
+Dim Found_WD_Job As String
+'
+'WinAPI functions
+Private Declare PtrSafe Function BringWindowToTop Lib "user32" (ByVal _
+ hwnd As Long) As Long
+ 
+Private Declare PtrSafe Function GetWindowText Lib "user32" Alias "GetWindowTextA" (ByVal _
+ hwnd As Long, ByVal lpString As String, ByVal cch As Long) As Long
+'
 '
 Sub IE_EnterLabor(CallingSheet)
 ' Logs in to TEMPO and enters labor from Labor Worksheet
@@ -27,6 +47,9 @@ Sub IE_EnterLabor(CallingSheet)
     Dim LastEntryRow
     Dim ErrorText, ErrorCode
     Dim theHours(7) As String
+    Dim entriesMatch As Boolean
+    Dim loopCount As Integer
+    Const loopLimit As Integer = 3
 
     Call IE_GetUserValues(CallingSheet)
     
@@ -34,27 +57,40 @@ Sub IE_EnterLabor(CallingSheet)
     Set objIE = IE_Find_Or_Open_TEMPO()
     Call IE_Wait_Until_Done(objIE)
     
-    'go to Attendance & Labor Input page
-    If IE_WhatsRunning = "TEMPO Home Page" Then
+    'check for TEMPO Logged Off page
+    If IE_WhatsRunning = "TEMPO Logged Off Page" Then
+        objIE.Navigate URL_TEMPO
+        Call IE_Wait(DoubleDelay)
+        Call IE_Wait_Until_Done(objIE)
+    End If
+    
+    'check for TEMPO Login page
+    If IE_WhatsRunning = "TEMPO Login Page" Then
+        objIE.Quit  'close this IE window
+        Call IE_Wait(DoubleDelay)
+        'Open new TEMPO window in Internet Explorer
+        Set objIE = IE_Find_Or_Open_TEMPO()
+        Call IE_Wait_Until_Done(objIE)
+    End If
+    
+    'go to TEMPO Time Entry page
+    If IE_WhatsRunning = "TEMPO Welcome Page" Then
         IE_TimeEntry_TEMPO
     ElseIf IE_WhatsRunning = "TEMPO Other Page" Then
         IE_TimeEntry_TEMPO
     End If
-'    'check for Logon page, perform logon if necessary
-'    If IE_WhatsRunning = "STARS Logon Page" Then
-'        Call IE_Logon_STARS(CallingSheet, False)
-'    End If
-'    'check for "Signed off, sign on again" page
-'    If IE_WhatsRunning = "STARS Sign Off Sign On Page" Then
-'        Call IE_Logon_STARS(CallingSheet, True)
-'    End If
         
     'check for Attendance & Labor Input page and input labor
     If IE_WhatsRunning = "TEMPO Time Entry Page" Then
         'Get the current web browser session
         Set objIE = IE_Find_TEMPO()
         'Bring it to the front
-        Call IE_Activate(objIE)
+        If Not IE_Activate(objIE) Then
+            'could not find TEMPO Time Sheet
+            Excel_Activate
+            result = MsgBox("Unable to find the Internet Explorer window and tab containing the TEMPO Time Sheet.", vbExclamation)
+            IE_Finish
+        End If
         'Get the document object
         Set objDocument = objIE.Document
         'configure first and last labor rows for the selected sheet
@@ -71,6 +107,11 @@ Sub IE_EnterLabor(CallingSheet)
         If (CallingSheet = Labor_Flex980_ShName) Or _
             (CallingSheet = Labor_Flex980_2weeks_ShName) Then
             MMDDYYYYstr = IE_GetWEDate_TEMPO(objIE)
+            If MMDDYYYYstr = "" Then
+                Excel_Activate
+                result = MsgBox("Unable to find Payroll W/E date in TEMPO.", vbExclamation)
+                IE_Finish
+            End If
             If (CallingSheet = Labor_Flex980_ShName) Then
                 WEdate = Sheets(CallingSheet).Range("BH10").Value + 2
             ElseIf (CallingSheet = Labor_Flex980_2weeks_ShName) Then
@@ -87,70 +128,145 @@ Sub IE_EnterLabor(CallingSheet)
                 IE_Finish
             End If
         End If
-        'enter days off
-        If CallingSheet = Labor_Flex980_ShName Then
-            For i = 0 To 7
-                Call IE_EnterDaysOff_TEMPO(objIE, Sheets(CallingSheet).Cells(4, 7 + i).Value, _
-                    Sheets(CallingSheet).Cells(5, 7 + i).Value, Sheets(CallingSheet).Cells(8, 7 + i).Value)
-            Next i
-        ElseIf CallingSheet = Labor_Flex980_2weeks_ShName Then
-            For i = 0 To 7
-                Call IE_EnterDaysOff_TEMPO(objIE, Sheets(CallingSheet).Cells(4, 13 + i).Value, _
-                    Sheets(CallingSheet).Cells(5, 13 + i).Value, Sheets(CallingSheet).Cells(8, 13 + i).Value)
-            Next i
-        End If
-        'prepare to enter labor
-        iRow = FirstLaborRow
-        iEntries = 0
-        'Find last row with a labor entry
-        LastEntryRow = LastLaborRow
-        Do While (LastEntryRow >= FirstLaborRow) And _
-           (Sheets(CallingSheet).Cells(LastEntryRow, 3).Value = "")
-            LastEntryRow = LastEntryRow - 1
-        Loop
-        'enter labor
+        'perform entries, then verify them
+        loopCount = 0
         Do
-            'Check whether we're entering all labor
-            ' always enter labor lines with non-zero hours (check both total in col 14 and O/T in col 15)
-            If (AllLaborX <> "") Or _
-                (Sheets(CallingSheet).Cells(iRow, colTotalHours).Value <> "") Then
-                If CallingSheet = Labor_Flex980_ShName Then
-                    theHours(0) = Sheets(CallingSheet).Cells(iRow, 7).Value 'Fri
-                    theHours(1) = Sheets(CallingSheet).Cells(iRow, 8).Value 'Sat
-                    theHours(2) = Sheets(CallingSheet).Cells(iRow, 9).Value 'Sun
-                    theHours(3) = Sheets(CallingSheet).Cells(iRow, 10).Value 'Mon
-                    theHours(4) = Sheets(CallingSheet).Cells(iRow, 11).Value 'Tue
-                    theHours(5) = Sheets(CallingSheet).Cells(iRow, 12).Value 'Wed
-                    theHours(6) = Sheets(CallingSheet).Cells(iRow, 13).Value 'Thu
-                    theHours(7) = Sheets(CallingSheet).Cells(iRow, 14).Value 'Fri
-                    Call IE_EnterChargeObj_TEMPO(objIE, iEntries, Sheets(CallingSheet).Cells(iRow, 3).Value, _
-                        Sheets(CallingSheet).Cells(iRow, 5).Value, Sheets(CallingSheet).Cells(iRow, 6).Value, theHours)
-                ElseIf CallingSheet = Labor_Flex980_2weeks_ShName Then
-                    theHours(0) = Sheets(CallingSheet).Cells(iRow, 13).Value 'Fri
-                    theHours(1) = Sheets(CallingSheet).Cells(iRow, 14).Value 'Sat
-                    theHours(2) = Sheets(CallingSheet).Cells(iRow, 15).Value 'Sun
-                    theHours(3) = Sheets(CallingSheet).Cells(iRow, 16).Value 'Mon
-                    theHours(4) = Sheets(CallingSheet).Cells(iRow, 17).Value 'Tue
-                    theHours(5) = Sheets(CallingSheet).Cells(iRow, 18).Value 'Wed
-                    theHours(6) = Sheets(CallingSheet).Cells(iRow, 19).Value 'Thu
-                    theHours(7) = Sheets(CallingSheet).Cells(iRow, 20).Value 'Fri
-                    Call IE_EnterChargeObj_TEMPO(objIE, iEntries, Sheets(CallingSheet).Cells(iRow, 3).Value, _
-                        Sheets(CallingSheet).Cells(iRow, 5).Value, Sheets(CallingSheet).Cells(iRow, 6).Value, theHours)
-                End If
-                iEntries = iEntries + 1
+            'enter days off
+            If CallingSheet = Labor_Flex980_ShName Then
+                For i = 0 To 7
+                    Call IE_EnterDaysOff_TEMPO(objIE, Sheets(CallingSheet).Cells(4, 7 + i).Value, _
+                        Sheets(CallingSheet).Cells(5, 7 + i).Value, Sheets(CallingSheet).Cells(8, 7 + i).Value)
+                Next i
+            ElseIf CallingSheet = Labor_Flex980_2weeks_ShName Then
+                For i = 0 To 7
+                    Call IE_EnterDaysOff_TEMPO(objIE, Sheets(CallingSheet).Cells(4, 13 + i).Value, _
+                        Sheets(CallingSheet).Cells(5, 13 + i).Value, Sheets(CallingSheet).Cells(8, 13 + i).Value)
+                Next i
             End If
-            iRow = iRow + 1
-        Loop Until iRow > LastEntryRow
-        'delete extra labor lines at end
-        Call IE_DeleteRows_TEMPO(objIE, iEntries)
-        'unable to click the save button at this time
-        'Call IE_Save_TEMPO(objIE)
+            'prepare to enter labor
+            iRow = FirstLaborRow
+            iEntries = 0
+            'Find last row with a labor entry
+            LastEntryRow = LastLaborRow
+            Do While (LastEntryRow >= FirstLaborRow) And _
+               (Sheets(CallingSheet).Cells(LastEntryRow, 3).Value = "")
+                LastEntryRow = LastEntryRow - 1
+            Loop
+            'enter labor
+            Do
+                'Check whether we're entering all labor
+                ' always enter labor lines with non-zero hours (check both total in col 14 and O/T in col 15)
+                If (AllLaborX <> "") Or _
+                    (Sheets(CallingSheet).Cells(iRow, colTotalHours).Value <> "") Then
+                    If CallingSheet = Labor_Flex980_ShName Then
+                        theHours(0) = Sheets(CallingSheet).Cells(iRow, 7).Value 'Fri
+                        theHours(1) = Sheets(CallingSheet).Cells(iRow, 8).Value 'Sat
+                        theHours(2) = Sheets(CallingSheet).Cells(iRow, 9).Value 'Sun
+                        theHours(3) = Sheets(CallingSheet).Cells(iRow, 10).Value 'Mon
+                        theHours(4) = Sheets(CallingSheet).Cells(iRow, 11).Value 'Tue
+                        theHours(5) = Sheets(CallingSheet).Cells(iRow, 12).Value 'Wed
+                        theHours(6) = Sheets(CallingSheet).Cells(iRow, 13).Value 'Thu
+                        theHours(7) = Sheets(CallingSheet).Cells(iRow, 14).Value 'Fri
+                        Call IE_EnterChargeObj_TEMPO(objIE, iEntries, Sheets(CallingSheet).Cells(iRow, 3).Value, _
+                            Sheets(CallingSheet).Cells(iRow, 5).Value, Sheets(CallingSheet).Cells(iRow, 6).Value, theHours)
+                    ElseIf CallingSheet = Labor_Flex980_2weeks_ShName Then
+                        theHours(0) = Sheets(CallingSheet).Cells(iRow, 13).Value 'Fri
+                        theHours(1) = Sheets(CallingSheet).Cells(iRow, 14).Value 'Sat
+                        theHours(2) = Sheets(CallingSheet).Cells(iRow, 15).Value 'Sun
+                        theHours(3) = Sheets(CallingSheet).Cells(iRow, 16).Value 'Mon
+                        theHours(4) = Sheets(CallingSheet).Cells(iRow, 17).Value 'Tue
+                        theHours(5) = Sheets(CallingSheet).Cells(iRow, 18).Value 'Wed
+                        theHours(6) = Sheets(CallingSheet).Cells(iRow, 19).Value 'Thu
+                        theHours(7) = Sheets(CallingSheet).Cells(iRow, 20).Value 'Fri
+                        Call IE_EnterChargeObj_TEMPO(objIE, iEntries, Sheets(CallingSheet).Cells(iRow, 3).Value, _
+                            Sheets(CallingSheet).Cells(iRow, 5).Value, Sheets(CallingSheet).Cells(iRow, 6).Value, theHours)
+                    End If
+                    iEntries = iEntries + 1
+                End If
+                iRow = iRow + 1
+            Loop Until iRow > LastEntryRow
+            'delete extra labor lines at end
+            Call IE_DeleteRows_TEMPO(objIE, iEntries)
+            'pause briefly
+            Call IE_Wait(1)
+            'begin verification of entered data
+            entriesMatch = True  'start as true, change to false if any entry does not match
+            'verify days off
+            If CallingSheet = Labor_Flex980_ShName Then
+                For i = 0 To 7
+                    If entriesMatch Then
+                        entriesMatch = IE_VerifyDaysOff_TEMPO(objIE, Sheets(CallingSheet).Cells(4, 7 + i).Value, _
+                            Sheets(CallingSheet).Cells(5, 7 + i).Value, Sheets(CallingSheet).Cells(8, 7 + i).Value)
+                    End If
+                Next i
+            ElseIf CallingSheet = Labor_Flex980_2weeks_ShName Then
+                For i = 0 To 7
+                    If entriesMatch Then
+                        entriesMatch = IE_VerifyDaysOff_TEMPO(objIE, Sheets(CallingSheet).Cells(4, 13 + i).Value, _
+                            Sheets(CallingSheet).Cells(5, 13 + i).Value, Sheets(CallingSheet).Cells(8, 13 + i).Value)
+                    End If
+                Next i
+            End If
+            'prepare to verify labor
+            iRow = FirstLaborRow
+            iEntries = 0
+            'verify labor
+            Do
+                If entriesMatch Then
+                    'Check whether we're entering all labor
+                    ' always enter labor lines with non-zero hours (check both total in col 14 and O/T in col 15)
+                    If (AllLaborX <> "") Or _
+                        (Sheets(CallingSheet).Cells(iRow, colTotalHours).Value <> "") Then
+                        If CallingSheet = Labor_Flex980_ShName Then
+                            theHours(0) = Sheets(CallingSheet).Cells(iRow, 7).Value 'Fri
+                            theHours(1) = Sheets(CallingSheet).Cells(iRow, 8).Value 'Sat
+                            theHours(2) = Sheets(CallingSheet).Cells(iRow, 9).Value 'Sun
+                            theHours(3) = Sheets(CallingSheet).Cells(iRow, 10).Value 'Mon
+                            theHours(4) = Sheets(CallingSheet).Cells(iRow, 11).Value 'Tue
+                            theHours(5) = Sheets(CallingSheet).Cells(iRow, 12).Value 'Wed
+                            theHours(6) = Sheets(CallingSheet).Cells(iRow, 13).Value 'Thu
+                            theHours(7) = Sheets(CallingSheet).Cells(iRow, 14).Value 'Fri
+                            entriesMatch = IE_VerifyChargeObj_TEMPO(objIE, iEntries, Sheets(CallingSheet).Cells(iRow, 3).Value, _
+                                Sheets(CallingSheet).Cells(iRow, 5).Value, Sheets(CallingSheet).Cells(iRow, 6).Value, theHours)
+                        ElseIf CallingSheet = Labor_Flex980_2weeks_ShName Then
+                            theHours(0) = Sheets(CallingSheet).Cells(iRow, 13).Value 'Fri
+                            theHours(1) = Sheets(CallingSheet).Cells(iRow, 14).Value 'Sat
+                            theHours(2) = Sheets(CallingSheet).Cells(iRow, 15).Value 'Sun
+                            theHours(3) = Sheets(CallingSheet).Cells(iRow, 16).Value 'Mon
+                            theHours(4) = Sheets(CallingSheet).Cells(iRow, 17).Value 'Tue
+                            theHours(5) = Sheets(CallingSheet).Cells(iRow, 18).Value 'Wed
+                            theHours(6) = Sheets(CallingSheet).Cells(iRow, 19).Value 'Thu
+                            theHours(7) = Sheets(CallingSheet).Cells(iRow, 20).Value 'Fri
+                            entriesMatch = IE_VerifyChargeObj_TEMPO(objIE, iEntries, Sheets(CallingSheet).Cells(iRow, 3).Value, _
+                                Sheets(CallingSheet).Cells(iRow, 5).Value, Sheets(CallingSheet).Cells(iRow, 6).Value, theHours)
+                        End If
+                        iEntries = iEntries + 1
+                    End If
+                End If
+                iRow = iRow + 1
+            Loop Until iRow > LastEntryRow
+            If Not entriesMatch Then
+                'increase delays by 1 second each for next try
+                NoDelay = NoDelay + 1
+                SingleDelay = SingleDelay + 1
+                DoubleDelay = DoubleDelay + 1
+            End If
+            'keep track of number of times through this loop
+            loopCount = loopCount + 1
+        Loop Until entriesMatch Or (loopCount >= loopLimit)
+        'Unable to click the save button at this time, but don't want to automatically click it anyway
+        ' - this allows user to review labor before TEMPO combines and rearranges it!
         'pause briefly before returning to Excel
         Call IE_Wait(1)
         Excel_Activate
-        If (CompletedDialogX <> "") Then
-            result = MsgBox("Labor entry completed!" & Chr(10) & Chr(10) & _
-                "Remember to review the labor and click the Save button in TEMPO.", vbInformation)
+        If entriesMatch Then
+            If (CompletedDialogX <> "") Then
+                result = MsgBox("Labor entry completed!" & Chr(10) & Chr(10) & _
+                    "Remember to review the labor and click the Save button in TEMPO.", vbInformation)
+            End If
+        Else
+            result = MsgBox("Unable to enter labor correctly!" & Chr(10) & Chr(10) & _
+                "Tried " & loopLimit & " times and found at least one incorrect entry each time.", vbExclamation)
         End If
     Else
         'not at Attendance & Labor Input page
@@ -162,10 +278,22 @@ Sub IE_EnterLabor(CallingSheet)
     Set objIE = Nothing
 
 End Sub
+Function IE_GetSetValue(rangeName, defaultValue)
+' Check for user value, if blank, sets to default
+' then return the user value
+'
+    If Range(rangeName).Value = "" Then
+        Range(rangeName).Value = defaultValue
+    End If
+    IE_GetSetValue = Range(rangeName).Value
+End Function
 Sub IE_GetUserValues(CallingSheet)
 ' Gets user values from Instructions page
 '
-    URL_TEMPO = Range("TEMPO_URL").Value
+    URL_TEMPO = IE_GetSetValue("TEMPO_URL", Default_URL_TEMPO)
+    Suffix_Shell_Home = IE_GetSetValue("TEMPO_ShellHome_Suffix", Default_Suffix_Shell_Home)
+    Suffix_Time_Entry = IE_GetSetValue("TEMPO_TimeEntry_Suffix", Default_Suffix_Time_Entry)
+    URL_LoggedOff = IE_GetSetValue("TEMPO_LoggedOff_URL", Default_URL_LoggedOff)
     AllLaborX = Range("AllLabor_X").Value
     CompletedDialogX = Range("CompletedDialog_X").Value
     Call LE_GetUserValues(CallingSheet)
@@ -201,14 +329,24 @@ Function IE_Find_TEMPO() As Object
     Dim IE_TabURL As String
     Dim foundTEMPO As Boolean
     
+    'Debug.Print "Function IE_Find_TEMPO"
+    
     'First, check each open window/tab for an active TEMPO session
     foundTEMPO = False
     For Each objIE In shellWins
     
         IE_TabURL = objIE.LocationURL
         
+        'Debug.Print objIE.hwnd, IE_TabURL
+        
         If (IE_TabURL = URL_TEMPO) Then
             'Found a valid TEMPO URL
+            foundTEMPO = True
+            Exit For
+        End If
+        
+        If (IE_TabURL = URL_LoggedOff) Then
+            'Found the TEMPO "You Have Been Logged Off" URL
             foundTEMPO = True
             Exit For
         End If
@@ -235,12 +373,25 @@ Function IE_Find_TEMPO() As Object
 End Function
 Sub IE_DeleteRows_TEMPO(objIE As Object, rowIndex As Integer)
 ' Deletes rows from rowIndex and beyond
+' Note: Infinite loop can occur if deleting the only row in TEMPO.
+'       TEMPO automatically creates a new blank row, so we keep trying
+'       to delete it.  Therefore, we check below whether we are deleting
+'       the only row, and if so, we do not check and try to delete it again.
+'       This avoids the infinite loop.
 '
     Dim objElement As Object
     Dim i As Integer
-    Dim result As Integer
+    Dim altRowIndex As Integer
     Dim StartOver As Boolean
 
+    'If we are deleting rows starting with the first row (row index 0), then
+    ' start with row index 1 until there are no other rows left, then delete row index 0
+    If rowIndex = 0 Then
+        altRowIndex = 1
+    Else
+        altRowIndex = rowIndex
+    End If
+    'Delete the rows
     Do
         i = 0
         StartOver = False
@@ -249,10 +400,12 @@ Sub IE_DeleteRows_TEMPO(objIE As Object, rowIndex As Integer)
             'Debug.Print objElement.tagName, objElement.ID
             If (objElement.tagName = "SPAN") Then
                 If (objElement.Title = "Delete Line") Then
-                    If i = rowIndex Then
+                    If i = altRowIndex Then
                         objElement.Click
                         Call IE_Wait(DoubleDelay)
-                        StartOver = True
+                        If altRowIndex > 0 Then    'avoid infinite loop
+                            StartOver = True
+                        End If
                         Exit For
                     Else
                         i = i + 1
@@ -262,6 +415,12 @@ Sub IE_DeleteRows_TEMPO(objIE As Object, rowIndex As Integer)
                 End If
             End If
         Next
+        'Check for special case where we still need to delete row index 0
+        If (Not (StartOver)) And (altRowIndex = 1) And (rowIndex = 0) Then
+            'Loop one more time to delete row index 0
+            altRowIndex = 0
+            StartOver = True
+        End If
     Loop Until (Not (StartOver))
     
 End Sub
@@ -275,6 +434,7 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj A
     Dim result As Integer
     Dim StartOver As Boolean
 
+    Call Check_WD_Job(objIE)    'check for WD Job field (sets Found_WD_Job to "Y" or "N")
     If theShift = "" Then
         theShift = "1"
     End If
@@ -320,7 +480,11 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj A
             ElseIf state = 2 Then   'next input field is Ext
                 If (objElement.tagName = "INPUT") Then
                     If (objElement.role = "textbox") Then
-                        state = 3
+                        If Found_WD_Job = "Y" Then
+                            state = 3 'need to handle WD Job field next
+                        Else
+                            state = 4 'no WD Job field - skip it
+                        End If
                         objElement.Focus
                         If Not (objElement.Value = UCase(theExt)) Then
                             objElement.Value = theExt
@@ -334,10 +498,29 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj A
                         End If
                     End If
                 End If
-            ElseIf state = 3 Then   'next input field is Shift
+            ElseIf state = 3 Then   'next input field is WD Job
                 If (objElement.tagName = "INPUT") Then
                     If (objElement.role = "textbox") Then
                         state = 4
+                        objElement.Focus
+                        ' We don't have a field for WD Job
+                        '  set WD Job to blank, let user enter the correct code later if needed
+                        If Not (objElement.Value = "") Then
+                            objElement.Value = ""
+                            'objElement.Click
+                            Set evt = objIE.Document.createEvent("HTMLEvents")
+                            'Set evt = objIE.Document.createEvent("keyboardevent")
+                            evt.initEvent "change", True, False
+                            objElement.dispatchEvent evt
+                            Call IE_SendKeys(objIE, "{TAB}")
+                            Call IE_Wait(SingleDelay)
+                        End If
+                    End If
+                End If
+            ElseIf state = 4 Then   'next input field is Shift
+                If (objElement.tagName = "INPUT") Then
+                    If (objElement.role = "textbox") Then
+                        state = 5
                         j = 0
                         objElement.Focus
                         If Not (objElement.Value = UCase(theShift)) Then
@@ -352,11 +535,12 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj A
                         End If
                     End If
                 End If
-            ElseIf state = 4 Then   'next input fields are Hours
+            ElseIf state = 5 Then   'next input fields are Hours
                 If (objElement.tagName = "INPUT") Then
                     If (objElement.role = "textbox") Then
                         objElement.Focus
-                        If Not (objElement.Value = UCase(theHours(j))) Then
+                        'TEMPO allows tenths of hours - compare both values as numbers rounded to 1 decimal place
+                        If Not (Round(Val(objElement.Value), 1) = Round(Val(theHours(j)), 1)) Then
                             objElement.Value = theHours(j)
                             'objElement.Click
                             Set evt = objIE.Document.createEvent("HTMLEvents")
@@ -364,11 +548,11 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj A
                             evt.initEvent "change", True, False
                             objElement.dispatchEvent evt
                             Call IE_SendKeys(objIE, "{TAB}")
-                            'Call IE_Wait(SingleDelay)
+                            Call IE_Wait(NoDelay)
                         End If
                         j = j + 1
                         If j > UBound(theHours) Then
-                            state = 5
+                            state = 6
                             Exit For
                         End If
                     End If
@@ -377,12 +561,108 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj A
         Next
     Loop Until (Not (StartOver))
     
-    If state <> 5 Then
+    If state <> 6 Then
         Excel_Activate
         result = MsgBox("Unable to enter Charge Object for row " & rowIndex & " in TEMPO.", vbExclamation)
         IE_Finish
     End If
 End Sub
+Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj As String, theExt As String, theShift As String, theHours() As String) As Boolean
+' Verifies the entries for the Charge Object theValue in row rowIndex
+'
+    Dim objElement As Object
+    Dim evt As Object
+    Dim i, j As Integer
+    Dim state As Integer
+    Dim result As Integer
+    Dim matches As Boolean
+
+    Call Check_WD_Job(objIE)    'check for WD Job field (sets Found_WD_Job to "Y" or "N")
+    If theShift = "" Then
+        theShift = "1"
+    End If
+    i = 0
+    state = 0
+    matches = True
+    'Debug.Print objIE.Document.Count
+    For Each objElement In objIE.Document.all
+        'Debug.Print objElement.tagName, objElement.ID
+        If state = 0 Then   'look for span with title "Delete Line" or "Add Line"
+            If (objElement.tagName = "SPAN") Then
+                If (objElement.Title = "Delete Line") Then
+                    If i = rowIndex Then
+                        state = 1
+                    Else
+                        i = i + 1
+                    End If
+                End If
+            End If
+        ElseIf state = 1 Then   'look for input field for the charge object: tagName "INPUT" with role "textbox"
+            If (objElement.tagName = "INPUT") Then
+                If (objElement.role = "textbox") Then
+                    state = 2
+                    If Not (objElement.Value = UCase(theChargeObj)) Then
+                        matches = False
+                        Exit For
+                    End If
+                End If
+            End If
+        ElseIf state = 2 Then   'next input field is Ext
+            If (objElement.tagName = "INPUT") Then
+                If (objElement.role = "textbox") Then
+                    If Found_WD_Job = "Y" Then
+                        state = 3 'need to handle WD Job field next
+                    Else
+                        state = 4 'no WD Job field - skip it
+                    End If
+                    If Not (objElement.Value = UCase(theExt)) Then
+                        matches = False
+                        Exit For
+                    End If
+                End If
+            End If
+        ElseIf state = 3 Then   'next input field is WD Job
+            If (objElement.tagName = "INPUT") Then
+                If (objElement.role = "textbox") Then
+                    state = 4
+                    ' We don't have a field for WD Job
+                    '  set WD Job to blank, let user enter the correct code later if needed
+                    If Not (objElement.Value = "") Then
+                        matches = False
+                        Exit For
+                    End If
+                End If
+            End If
+        ElseIf state = 4 Then   'next input field is Shift
+            If (objElement.tagName = "INPUT") Then
+                If (objElement.role = "textbox") Then
+                    state = 5
+                    j = 0
+                    If Not (objElement.Value = UCase(theShift)) Then
+                        matches = False
+                        Exit For
+                    End If
+                End If
+            End If
+        ElseIf state = 5 Then   'next input fields are Hours
+            If (objElement.tagName = "INPUT") Then
+                If (objElement.role = "textbox") Then
+                    'TEMPO allows tenths of hours - compare both values as numbers rounded to 1 decimal place
+                    If Not (Round(Val(objElement.Value), 1) = Round(Val(theHours(j)), 1)) Then
+                        matches = False
+                    End If
+                    j = j + 1
+                    If j > UBound(theHours) Then
+                        state = 6
+                        Exit For
+                    End If
+                End If
+            End If
+        End If
+    Next
+    
+    IE_VerifyChargeObj_TEMPO = matches
+End Function
 Private Sub testIEECO()
 ' TEMPO must already be open at Time Entry page in an Internet Explorer window
     Dim objIE As Object
@@ -396,7 +676,7 @@ Private Sub testIEECO()
     theHours(5) = "1.5"
     theHours(6) = "1.6"
     theHours(7) = "1.7"
-    Debug.Print LBound(theHours), UBound(theHours)
+    'Debug.Print LBound(theHours), UBound(theHours)
     'Get user values so URL is defined
     Call IE_GetUserValues(Instructions_ShName)
     'Get the current web browser session
@@ -407,6 +687,46 @@ Private Sub testIEECO()
     Call IE_EnterChargeObj_TEMPO(IE_Find_Or_Open_TEMPO(), 0, "Test0", "Ex0", "0", theHours)
     Call IE_EnterChargeObj_TEMPO(IE_Find_Or_Open_TEMPO(), 1, "Test1", "Ex1", "1", theHours)
     Call IE_EnterChargeObj_TEMPO(IE_Find_Or_Open_TEMPO(), 2, "Test2", "Ex2", "2", theHours)
+End Sub
+Sub Check_WD_Job(objIE As Object)
+' Checks for the "WD Job" field in TEMPO labor entry screen
+'
+    Dim objElement As Object
+    Dim found As Boolean
+    
+    If (Found_WD_Job = "Y") Or (Found_WD_Job = "N") Then
+        'already checked and set variable - nothing more to do
+    Else
+        found = False
+        For Each objElement In objIE.Document.all
+            If (objElement.tagName = "LABEL") Then
+                If (UCase(Trim(objElement.innerText)) = "WD JOB") Then
+                    found = True
+                End If
+            End If
+        Next
+        If found Then
+            Found_WD_Job = "Y"
+        Else
+            Found_WD_Job = "N"
+        End If
+    End If
+End Sub
+Sub testCWDJ()
+' TEMPO must already be open at Time Entry page in an Internet Explorer window
+    Dim objIE As Object
+    
+    'Force subroutine to check again! (comment out to test that it "remembers")
+    Found_WD_Job = ""
+    'Get user values so URL is defined
+    Call IE_GetUserValues(Instructions_ShName)
+    'Get the current web browser session
+    Set objIE = IE_Find_TEMPO()
+    'Bring it to the front
+    Call IE_Activate(objIE)
+    'Test the subroutine
+    Call Check_WD_Job(objIE)
+    'Debug.Print Found_WD_Job
 End Sub
 Sub IE_EnterDaysOff_TEMPO(objIE As Object, dayName As String, theDate As String, dayOffValue As String)
 ' Enters the day off at position dayIndex (0 to 7)
@@ -461,6 +781,60 @@ Sub IE_EnterDaysOff_TEMPO(objIE As Object, dayName As String, theDate As String,
         IE_Finish
     End If
 End Sub
+Function IE_VerifyDaysOff_TEMPO(objIE As Object, dayName As String, theDate As String, dayOffValue As String) As Boolean
+' Verfies the entered day off at position dayIndex (0 to 7)
+'
+    Dim objElement As Object
+    Dim dayNumStr As String
+    Dim state As Integer
+    Dim result As Integer
+    Dim matches As Boolean
+
+    dayNumStr = Format(theDate, "d")
+    state = 0
+    matches = False
+    For Each objElement In objIE.Document.all
+        'Debug.Print objElement.tagName, objElement.ID
+        If state = 0 Then   'look for label with the day name: tagName "LABEL" with innerText "Fri", for example
+            If (objElement.tagName = "LABEL") Then
+                If (UCase(Trim(objElement.innerText)) = UCase(dayName)) Then
+                    state = 1
+                End If
+            End If
+        ElseIf state = 1 Then   'next label element must have correct day number
+            If (objElement.tagName = "LABEL") Then
+                If (Trim(objElement.innerText) = dayNumStr) Then
+                    state = 2
+                Else
+                    state = 0
+                End If
+            End If
+        ElseIf state = 2 Then   'find next button: tagName "BUTTON"
+            If (objElement.tagName = "BUTTON") Then
+                state = 3
+                If objElement.textContent = "" Then 'button is On (textContent is empty)
+                    If dayOffValue = "" Then 'desired value is On
+                        matches = True
+                    End If
+                Else 'button is Off (textContent = "OFF")
+                    If dayOffValue = "" Then 'desired value is On
+                    Else 'desired value is Off
+                        matches = True
+                    End If
+                End If
+                Exit For
+            End If
+        End If
+    Next
+
+    If state <> 3 Then
+        Excel_Activate
+        result = MsgBox("Unable to find day off entry for " & dayName & " " & theDate & " in TEMPO.", vbExclamation)
+        IE_Finish
+    End If
+    
+    IE_VerifyDaysOff_TEMPO = matches
+End Function
 Private Sub testIEEDO()
 ' TEMPO must already be open at Time Entry page in an Internet Explorer window
     Dim objIE As Object
@@ -476,6 +850,7 @@ Private Sub testIEEDO()
 End Sub
 Function IE_GetWEDate_TEMPO(objIE As Object) As String
 ' Returns the current Week Ending date from TEMPO in format mm/dd/yyyy
+' Returns an empty string if the current Week Ending date is not found
 '
     Dim objElement As Object
     Dim theStr As String
@@ -502,11 +877,6 @@ Function IE_GetWEDate_TEMPO(objIE As Object) As String
         End If
     Next
 
-    If state <> 2 Then
-        Excel_Activate
-        result = MsgBox("Unable to find Payroll W/E date in TEMPO.", vbExclamation)
-        IE_Finish
-    End If
     IE_GetWEDate_TEMPO = theStr
 End Function
 Function IE_GetTimeEntry_TEMPO(objIE As Object) As String
@@ -518,7 +888,7 @@ Function IE_GetTimeEntry_TEMPO(objIE As Object) As String
     theStr = ""
     'Look through all elements
     For Each objElement In objIE.Document.all
-        Debug.Print objElement.tagName, objElement.ID
+        'Debug.Print objElement.tagName, objElement.ID
         'look for Time Entry label: tagName "DIV" with title "Time Entry"
         If (objElement.tagName = "DIV") Then
             If (Trim(objElement.Title) = "Time Entry") Then
@@ -582,11 +952,16 @@ Sub IE_TimeEntry_TEMPO()
 '
     Dim objIE As Object
     Dim waitTime As Integer
+    Dim result As Integer
     
     'Get the current web browser session
     Set objIE = IE_Find_TEMPO()
     'Bring it to the front
-    Call IE_Activate(objIE)
+    If Not IE_Activate(objIE) Then
+        Excel_Activate
+        result = MsgBox("Unable to find the Internet Explorer window and tab containing the TEMPO Time Sheet.", vbExclamation)
+        IE_Finish
+    End If
     'Navigate to Time Entry
     objIE.Navigate URL_TEMPO & Suffix_Time_Entry
     'Wait for page to load
@@ -598,10 +973,11 @@ Sub IE_TimeEntry_TEMPO()
         Call IE_Wait(DoubleDelay)
         waitTime = waitTime + DoubleDelay
     Loop
-    
 End Sub
 Sub IE_Wait(theDelaySeconds As Integer)
-    Application.Wait DateAdd("s", theDelaySeconds, Now)
+    If theDelaySeconds >= 0 Then
+        Application.Wait DateAdd("s", theDelaySeconds, Now)
+    End If
 End Sub
 Sub IE_Wait_Until_Done(objIE As Object)
     Dim IEbusy
@@ -609,7 +985,7 @@ Sub IE_Wait_Until_Done(objIE As Object)
     Dim theType As String
     Dim waitComplete As Boolean
     
-    Debug.Print "IE_Wait_Until_Done"
+    'Debug.Print "IE_Wait_Until_Done"
     waitComplete = False
     Do
         'set default values before checking browser object
@@ -620,7 +996,7 @@ Sub IE_Wait_Until_Done(objIE As Object)
         If theType = "IWebBrowser2" Then
             IEbusy = objIE.busy
             IEreadyState = objIE.ReadyState
-            Debug.Print IEbusy, IEreadyState
+            'Debug.Print IEbusy, IEreadyState
         Else 'not a web browser object
             Set objIE = IE_Find_TEMPO() 're-link to IE web browser
         End If
@@ -640,64 +1016,37 @@ Sub IE_Wait_Until_Done(objIE As Object)
     Loop Until waitComplete
 
 End Sub
-Function IE_GetMessage_STARS(objIE As Object) As String
-' Returns the error message on the entry screen in STARS
-'
-    Dim objElements As Object
-    Dim theMessage As String
-
-    theMessage = ""
-    On Error Resume Next
-    Set objElements = objIE.Document.getElementsByClassName("starsMessage")
-    On Error GoTo 0
-    If objElements Is Nothing Then
-        'Unable to find class name "starsMessage", so use an alternate method to find the error message
-        theMessage = IE_GetMessage_STARS_Alternate(objIE)
-    Else
-        If objElements.Length <> 0 Then
-            theMessage = Trim(objElements.Item(0).innerText)
-        End If
-    End If
-    IE_GetMessage_STARS = theMessage
-End Function
-Function IE_GetMessage_STARS_Alternate(objIE As Object) As String
-' Returns the error message on the entry screen in STARS
-'
-    Dim objElement As Object
-    Dim theStr As String
-    Dim theMessage As String
-
-    theMessage = ""
-    'Look through all elements
-    Debug.Print "IE_GetMessage_STARS_Alternate"
-    For Each objElement In objIE.Document.getElementsByTagName("td")
-        theStr = objElement.innerHTML
-'        Debug.Print theStr
-        'alternate method: error message is inside a class "starsBorder"
-        If InStr(theStr, "class=starsBorder") > 0 Then
-            theMessage = Trim(objElement.innerText)
-            Debug.Print theMessage
-            Exit For
-        End If
-    Next
-    IE_GetMessage_STARS_Alternate = theMessage
-End Function
-Function IE_WhatsRunning()
-' Checks what STARS screen is showing in the terminal session, returns a string:
+Function IE_WhatsRunning() As String
+' Checks what TEMPO screen is showing in Internet Explorer, returns a string identifying the name
     Dim objIE As Object
     Dim IE_TabURL As String
-    Dim objElements As Object
-    Dim theMessage As String
+    Dim objElement As Object
+    Dim theStr As String
+'    Dim foundUserName As Boolean
     
     Set objIE = IE_Find_TEMPO()
     Call IE_Wait_Until_Done(objIE)
     IE_TabURL = objIE.LocationURL
+'    foundUserName = False
     If (IE_TabURL = URL_TEMPO) Then
+        'check for login screen
+        If objIE.LocationName = "Logon" Then
+            IE_WhatsRunning = "TEMPO Login Page"
+        Else
+            IE_WhatsRunning = "TEMPO Welcome Page"
+        End If
+        Exit Function
+    End If
+    If (IE_TabURL = URL_TEMPO & Suffix_Shell_Home) Then
         IE_WhatsRunning = "TEMPO Welcome Page"
         Exit Function
     End If
     If (IE_TabURL = URL_TEMPO & Suffix_Time_Entry) Then
         IE_WhatsRunning = "TEMPO Time Entry Page"
+        Exit Function
+    End If
+    If (IE_TabURL = URL_LoggedOff) Then
+        IE_WhatsRunning = "TEMPO Logged Off Page"
         Exit Function
     End If
     If Len(IE_TabURL) > Len(URL_TEMPO) Then
@@ -708,21 +1057,62 @@ Function IE_WhatsRunning()
     End If
     IE_WhatsRunning = "NONE"
 End Function
-Sub IE_Activate(objIE As Object)
+Function IE_Activate(objIE As Object) As Boolean
 '
-'Bring Internet Explorer window to the front
+'Bring Internet Explorer window to the front and select the desired tab
 '
     Dim windowName
+    Dim windowNameLength
+    Dim winTitleBuf As String * 255
+    Dim retLong As Long
+    Dim foundTab As Boolean
+    Dim loopCount As Integer
+    Const loopLimit As Integer = 256
     
+    'Debug.Print "Function IE_Activate"
+    
+    foundTab = False
     objIE.Visible = True
     windowName = objIE.Document.Title
+    windowNameLength = Len(windowName)
     'this doesn't work when TEMPO is in a tab in IE that is not currently selected
     'but we'll wrap it with an error handler so we can continue anyway
     On Error Resume Next
-    AppActivate (windowName)
+    If windowNameLength > 0 Then
+        AppActivate (windowName)
+    End If
     AppActivate objIE
     On Error GoTo 0
-End Sub
+    'make sure window is topmost
+    BringWindowToTop objIE.hwnd
+    'select desired tab if multiple tabs are present
+    If windowNameLength > 0 Then
+        loopCount = 0
+        Do
+            'get window title of IE window (includes " - Internet Explorer" at end)
+            retLong = GetWindowText(objIE.hwnd, winTitleBuf, 255)
+            'Debug.Print retLong, winTitleBuf
+            If retLong >= windowNameLength Then
+                'check for title match to the length of the desired window name
+                If Left(winTitleBuf, windowNameLength) = windowName Then
+                    'it is a match!
+                    foundTab = True
+                End If
+            End If
+            If Not foundTab Then
+                'haven't found the correct tab yet
+                'Send Ctrl+Tab to IE to switch to next tab
+                Call IE_SendKeys(objIE, "^{TAB}")
+                'Wait one second so window has time to refresh
+                Call IE_Wait(1)
+            End If
+            'keep track of number of times through loop to prevent infinite loop
+            loopCount = loopCount + 1
+        Loop Until foundTab Or (loopCount > loopLimit)
+    End If
+    'return boolean indicating whether correct tab was found
+    IE_Activate = foundTab
+End Function
 Sub IE_SendKeys(objIE As Object, theString As String)
 '
 'Bring Internet Explorer window to the front
@@ -737,7 +1127,15 @@ Sub IE_SendKeys(objIE As Object, theString As String)
     AppActivate (windowName)
     AppActivate objIE
     On Error GoTo 0
-    Application.SendKeys (theString)
+    'make sure the window is still in front
+    BringWindowToTop objIE.hwnd
+    'and send the keys
+    'workaround for SendKeys bug (see https://support.microsoft.com/en-us/kb/179987)
+    DoEvents
+    Get_Keyboard_States
+    Application.SendKeys (theString), True
+    Set_Keyboard_States
+    DoEvents
 End Sub
 Sub IE_Finish()
 '

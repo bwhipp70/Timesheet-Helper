@@ -18,6 +18,23 @@
 '   Was:         WEdate = Sheets(CallingSheet).Range("Q2").Value
 '   Changed to:  WEdate = Sheets(CallingSheet).Range("BH10").Value + 2
 '
+'******************************************
+'* Everything Else is addinbg PtrSafe to allow it to run on 64 bit machines
+'******************************************
+' Was to:
+' Private Declare PtrSafe Function BringWindowToTop Lib "user32" (ByVal _
+'  hwnd As Long) As Long
+'
+' Private Declare PtrSafe Function GetWindowText Lib "user32" Alias "GetWindowTextA" (ByVal _
+'  hwnd As Long, ByVal lpString As String, ByVal cch As Long) As Long
+'
+' Changed to:
+' Private Declare PtrSafe Function BringWindowToTop Lib "user32" (ByVal _
+'  hwnd As Long) As Long
+'
+' Private Declare PtrSafe Function GetWindowText Lib "user32" Alias "GetWindowTextA" (ByVal _
+'  hwnd As Long, ByVal lpString As String, ByVal cch As Long) As Long
+'
 '   Subroutines:
 '   Was:
 '   Private Declare Function BringWindowToTop Lib "user32" (ByVal _
@@ -52,6 +69,39 @@
 '
 '   Private Declare PtrSafe Function OpenIcon Lib "user32" (ByVal _
 '    hwnd As Long) As Long
+'
+'   KeyboardState:
+'   Was:
+' Private Declare Function GetVersionEx Lib "kernel32" _
+'    Alias "GetVersionExA" _
+'    (lpVersionInformation As OSVERSIONINFO) As Long
+'
+' Private Declare Sub keybd_event Lib "user32" _
+'    (ByVal bVk As Byte, _
+'     ByVal bScan As Byte, _
+'     ByVal dwFlags As Long, ByVal dwExtraInfo As Long)
+'
+' Private Declare Function GetKeyboardState Lib "user32" _
+'    (pbKeyState As Byte) As Long
+'
+' Private Declare Function SetKeyboardState Lib "user32" _
+'   (lppbKeyState As Byte) As Long
+
+'   Changed to:
+' Private Declare PtrSafe Function GetVersionEx Lib "kernel32" _
+'    Alias "GetVersionExA" _
+'    (lpVersionInformation As OSVERSIONINFO) As Long
+'
+' Private Declare PtrSafe Sub keybd_event Lib "user32" _
+'    (ByVal bVk As Byte, _
+'     ByVal bScan As Byte, _
+'     ByVal dwFlags As Long, ByVal dwExtraInfo As Long)
+'
+' Private Declare PtrSafe Function GetKeyboardState Lib "user32" _
+'    (pbKeyState As Byte) As Long
+'
+' Private Declare PtrSafe Function SetKeyboardState Lib "user32" _
+'   (lppbKeyState As Byte) As Long
 
 '3. Sheet Labor_Flex980
 '   Changed N5 to =BH10
@@ -67,7 +117,8 @@
 '   Timing Values, WP_List_Alpha_Unique = Column I = 2.0026
 '   Numbers don't make much sense, performance is noticeably better?!
 
-
+' Option Explicit broke the Import Capability
+' Option Explicit
 
 ' Variables used to resize the Timesheet
 Public TS_MaxRows As Long
@@ -82,6 +133,28 @@ Private ThisBookName
 Private ThisSheetName
 
 Private Const DevMode = "Dev_Mode"
+
+
+Private Declare PtrSafe Function ShellExecute _
+  Lib "shell32.dll" Alias "ShellExecuteA" ( _
+  ByVal hwnd As Long, _
+  ByVal Operation As String, _
+  ByVal Filename As String, _
+  Optional ByVal Parameters As String, _
+  Optional ByVal Directory As String, _
+  Optional ByVal WindowStyle As Long = vbMinimizedFocus _
+  ) As Long
+
+
+Sub TS_OpenTEMPO()
+
+' Brings up TEMPO
+'
+    Dim lSuccess As Long
+    lSuccess = ShellExecute(0, "Open", "https://tempofdb.external.lmco.com/fiori")
+
+End Sub
+
 
 Sub TS_UpdateMaxRows()
 
@@ -445,6 +518,9 @@ Sub TS_ClearInstructions()
     Range("Timeout_Delay").Value = "15"               ' Timeout
     Range("Single_Delay").Value = "1"                ' Delay
     Range("Double_Delay").Value = "2"                ' Double Delay
+    Range("TEMPO_ShellHome_Suffix").Value = "#Shell-home"  ' Suffix for Shell Home Page
+    Range("TEMPO_TimeEntry_Suffix").Value = "#ZTPOTIMESHEET2-record"  ' Suffix for Time Entry Page
+    Range("TEMPO_LoggedOff_URL").Value = "https://tempofdb.external.lmco.com/sap/public/bc/icf/logoff" ' URL for TEMPO logged off
     
 ' Return to Corner
     Range("A1").Select
@@ -694,10 +770,9 @@ Sub TS_ClearLabor_Flex980()
     Sheets("Labor_Flex980").Select
     
 ' Reset Values
-    Range("K2").Value = "10/2/2016"          ' Payroll Week Ending Date
+    Range("K2").Value = "01/01/2016"          ' Payroll Week Ending Date
     Range("F7").Value = "40"                 ' Hours goal for week
-    Range("G8").Select                       ' Fri On
-    Selection.ClearContents
+    Range("G8").Formula = "=IF(G6="""",""X"","""")"  ' Fri Auto Select
     Range("H8").Value = "X"                  ' Sat Off
     Range("I8").Value = "X"                  ' Sun Off
     Range("J8").Select                       ' Mon On
@@ -708,8 +783,7 @@ Sub TS_ClearLabor_Flex980()
     Selection.ClearContents
     Range("M8").Select                       ' Thur On
     Selection.ClearContents
-    Range("N8").Select                       ' Fri On
-    Selection.ClearContents
+    Range("N8").Formula = "=IF(N6="""",""X"","""")"   ' Fri Auto Select
     
     Range("K2").Select                      ' Place cursor back at home
     
@@ -723,8 +797,7 @@ Sub TS_ClearLabor_Flex980_2weeks()
 ' Reset Values
     Range("Q2").Value = "10/2/2016"          ' Payroll Week Ending Date
     Range("F7").Value = "40"                 ' Hours goal for week
-    Range("M8").Select                       ' Fri On
-    Selection.ClearContents
+    Range("M8").Formula = "=IF(M6="""",""X"","""")"    ' Fri Auto Select
     Range("N8").Value = "X"                  ' Sat Off
     Range("O8").Value = "X"                  ' Sun Off
     Range("P8").Select                       ' Mon On
@@ -735,8 +808,7 @@ Sub TS_ClearLabor_Flex980_2weeks()
     Selection.ClearContents
     Range("S8").Select                       ' Thur On
     Selection.ClearContents
-    Range("T8").Select                       ' Fri On
-    Selection.ClearContents
+    Range("T8").Formula = "=IF(T6="""",""X"","""")"   ' Fri Auto Select
     
     Range("Q2").Select                      ' Place cursor back at home
 
@@ -929,7 +1001,11 @@ End If
         End If
             
         If (Workbooks(DataBookName).Sheets("Configuration").Range("X1") = "Version") Then
-            TSVer = Sheets("Configuration").Range("X2").Value
+            If (Workbooks(DataBookName).Sheets("Configuration").Range("X2") = "3.02.01") Then
+                TSVer = 3.02
+            Else
+                TSVer = Sheets("Configuration").Range("X2").Value
+            End If
         End If
            
 '        MsgBox "SheetExists = " & SheetExists & "; V208/209/300 = " & v208 & ";" & v209 & ";" & v300
@@ -1042,6 +1118,10 @@ End If
                 If v208 Then
                    Workbooks(DataBookName).Activate
                    Sheets("Configuration").Select
+                   
+                   ' Unprotect the v208 sheet
+                   ActiveSheet.Unprotect "56o$sdfH"
+                   
                    ' Figure out how many lines are used in the shortcut
                    v208len = Range("N2:N20").Cells.SpecialCells(xlCellTypeConstants).Count
                    ' Copy only the used rows

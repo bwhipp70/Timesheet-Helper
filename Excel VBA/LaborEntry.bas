@@ -4,7 +4,9 @@ Option Explicit
 Public TimeOut
 Public Const DefaultTimeOut = 30
 '
-'Default delay in seconds to check when waiting for screen to appear
+'Default delays in seconds
+Public NoDelay As Integer
+Public Const DefaultNoDelay = 0
 Public SingleDelay As Integer
 Public Const DefaultSingleDelay = 1
 Public DoubleDelay As Integer
@@ -33,6 +35,7 @@ Dim result
         TimeOut = DefaultTimeOut
         Range("Timeout_Delay") = TimeOut
     End If
+    NoDelay = DefaultNoDelay  'no user entry for NoDelay
     SingleDelay = Range("Single_Delay").Value
     If SingleDelay < 1 Then
         SingleDelay = DefaultSingleDelay
