@@ -370,6 +370,10 @@ Function IE_Find_TEMPO() As Object
         Set IE_Find_TEMPO = Nothing
     End If
     
+    ' Added the delay to allow TEMPO to bring up the week data before attempting data entry.
+    ' V3.10 of Timesheet Helper
+    Call IE_Wait(SingleDelay)
+    
 End Function
 Sub IE_DeleteRows_TEMPO(objIE As Object, rowIndex As Integer)
 ' Deletes rows from rowIndex and beyond
