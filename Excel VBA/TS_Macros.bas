@@ -382,6 +382,8 @@ Sub TS_ProtectSheets()
     Sheets("Change History").Protect
     Sheets("Dropdown_Entries").Protect
     Sheets("TSMasterFormulas").Protect
+' 3.18 Addition
+    Sheets("_ReadMe").Protect
 
 ' Don't touch the Macro Warning sheet
 ' Otherwise, William's macros will break
@@ -405,6 +407,9 @@ Sub TS_UnprotectSheets()
     Sheets("Change History").Unprotect
     Sheets("Dropdown_Entries").Unprotect
     Sheets("TSMasterFormulas").Unprotect
+
+' 3.18 Addition
+    Sheets("_ReadMe").Unprotect
 
 ' Don't touch the Macro Warning sheet
 ' Otherwise, William's macros will break

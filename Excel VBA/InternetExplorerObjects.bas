@@ -12,10 +12,10 @@ Public Suffix_Shell_Home As String
 Public Suffix_Time_Entry As String
 Public URL_LoggedOff As String
 
-Public Const Default_URL_TEMPO = "https://tempofdb.external.lmco.com/fiori"
+Public Const Default_URL_TEMPO = "https://tempo.external.lmco.com/fiori" 'Updated 3.18
 Public Const Default_Suffix_Shell_Home = "#Shell-home"
-Public Const Default_Suffix_Time_Entry = "#ZTPOTIMESHEET2-record"
-Public Const Default_URL_LoggedOff = "https://tempofdb.external.lmco.com/sap/public/bc/icf/logoff"
+Public Const Default_Suffix_Time_Entry = "#ZTPOTIMESHEET3-record" 'Updated 3.18
+Public Const Default_URL_LoggedOff = "https://tempo.external.lmco.com/sap/public/bc/icf/logoff" 'Updated 3.18
 '
 ' Keep track of whether TEMPO time entry sheet has "WD Job" field
 '  default is empty string (need to check), "Y" if yes, and "N" if no
@@ -23,11 +23,19 @@ Public Const Default_URL_LoggedOff = "https://tempofdb.external.lmco.com/sap/pub
 Dim Found_WD_Job As String
 '
 'WinAPI functions
+#If Win64 Then
 Private Declare PtrSafe Function BringWindowToTop Lib "user32" (ByVal _
- hwnd As Long) As Long
+ hwnd As LongPtr) As Long
  
 Private Declare PtrSafe Function GetWindowText Lib "user32" Alias "GetWindowTextA" (ByVal _
+ hwnd As LongPtr, ByVal lpString As String, ByVal cch As Long) As Long
+#Else
+Private Declare Function BringWindowToTop Lib "user32" (ByVal _
+ hwnd As Long) As Long
+ 
+Private Declare Function GetWindowText Lib "user32" Alias "GetWindowTextA" (ByVal _
  hwnd As Long, ByVal lpString As String, ByVal cch As Long) As Long
+#End If
 '
 '
 Sub IE_EnterLabor(CallingSheet)
@@ -475,7 +483,8 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj A
                 End If
             ElseIf state = 1 Then   'look for input field for the charge object: tagName "INPUT" with role "textbox"
                 If (objElement.tagName = "INPUT") Then
-                    If (objElement.role = "textbox") Then
+                    If (objElement.role = "textbox") Or _
+                       (objElement.Type = "text") Then
                         state = 2
                         objElement.Focus
                         If Not (objElement.Value = UCase(theChargeObj)) Then
@@ -492,7 +501,8 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj A
                 End If
             ElseIf state = 2 Then   'next input field is Ext
                 If (objElement.tagName = "INPUT") Then
-                    If (objElement.role = "textbox") Then
+                    If (objElement.role = "textbox") Or _
+                       (objElement.Type = "text") Then
                         If Found_WD_Job = "Y" Then
                             state = 3 'need to handle WD Job field next
                         Else
@@ -513,7 +523,8 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj A
                 End If
             ElseIf state = 3 Then   'next input field is WD Job
                 If (objElement.tagName = "INPUT") Then
-                    If (objElement.role = "textbox") Then
+                    If (objElement.role = "textbox") Or _
+                       (objElement.Type = "text") Then
                         state = 4
                         objElement.Focus
                         ' We don't have a field for WD Job
@@ -532,7 +543,8 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj A
                 End If
             ElseIf state = 4 Then   'next input field is Shift
                 If (objElement.tagName = "INPUT") Then
-                    If (objElement.role = "textbox") Then
+                    If (objElement.role = "textbox") Or _
+                       (objElement.Type = "text") Then
                         state = 5
                         j = 0
                         objElement.Focus
@@ -550,7 +562,8 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj A
                 End If
             ElseIf state = 5 Then   'next input fields are Hours
                 If (objElement.tagName = "INPUT") Then
-                    If (objElement.role = "textbox") Then
+                    If (objElement.role = "textbox") Or _
+                       (objElement.Type = "text") Then
                         objElement.Focus
                         'TEMPO allows tenths of hours - compare both values as numbers rounded to 1 decimal place
                         If Not (Round(Val(objElement.Value), 1) = Round(Val(theHours(j)), 1)) Then
@@ -612,7 +625,9 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theCharg
             End If
         ElseIf state = 1 Then   'look for input field for the charge object: tagName "INPUT" with role "textbox"
             If (objElement.tagName = "INPUT") Then
-                If (objElement.role = "textbox") Then
+                If (objElement.role = "textbox") Or _
+                   (objElement.Type = "text") Then
+                    'Debug.Print state, objElement.Value, UCase(theChargeObj)
                     state = 2
                     If Not (objElement.Value = UCase(theChargeObj)) Then
                         matches = False
@@ -622,7 +637,9 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theCharg
             End If
         ElseIf state = 2 Then   'next input field is Ext
             If (objElement.tagName = "INPUT") Then
-                If (objElement.role = "textbox") Then
+                If (objElement.role = "textbox") Or _
+                   (objElement.Type = "text") Then
+                    'Debug.Print state, objElement.Value, UCase(theExt)
                     If Found_WD_Job = "Y" Then
                         state = 3 'need to handle WD Job field next
                     Else
@@ -636,7 +653,8 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theCharg
             End If
         ElseIf state = 3 Then   'next input field is WD Job
             If (objElement.tagName = "INPUT") Then
-                If (objElement.role = "textbox") Then
+                If (objElement.role = "textbox") Or _
+                   (objElement.Type = "text") Then
                     state = 4
                     ' We don't have a field for WD Job
                     '  set WD Job to blank, let user enter the correct code later if needed
@@ -648,8 +666,10 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theCharg
             End If
         ElseIf state = 4 Then   'next input field is Shift
             If (objElement.tagName = "INPUT") Then
-                If (objElement.role = "textbox") Then
-                    state = 5
+                If (objElement.role = "textbox") Or _
+                   (objElement.Type = "text") Then
+                    'Debug.Print state, objElement.Value, UCase(theShift)
+                     state = 5
                     j = 0
                     If Not (objElement.Value = UCase(theShift)) Then
                         matches = False
@@ -659,8 +679,10 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theCharg
             End If
         ElseIf state = 5 Then   'next input fields are Hours
             If (objElement.tagName = "INPUT") Then
-                If (objElement.role = "textbox") Then
+                If (objElement.role = "textbox") Or _
+                   (objElement.Type = "text") Then
                     'TEMPO allows tenths of hours - compare both values as numbers rounded to 1 decimal place
+                    'Debug.Print state, Round(Val(objElement.Value), 1), Round(Val(theHours(j)), 1)
                     If Not (Round(Val(objElement.Value), 1) = Round(Val(theHours(j)), 1)) Then
                         matches = False
                     End If
@@ -673,6 +695,7 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theCharg
             End If
         End If
     Next
+    'Debug.Print "matches", rowIndex, matches
     
     IE_VerifyChargeObj_TEMPO = matches
 End Function
@@ -754,13 +777,15 @@ Sub IE_EnterDaysOff_TEMPO(objIE As Object, dayName As String, theDate As String,
     For Each objElement In objIE.Document.all
         'Debug.Print objElement.tagName, objElement.ID
         If state = 0 Then   'look for label with the day name: tagName "LABEL" with innerText "Fri", for example
-            If (objElement.tagName = "LABEL") Then
+            If (objElement.tagName = "LABEL") Or _
+               (objElement.tagName = "BDI") Then
                 If (UCase(Trim(objElement.innerText)) = UCase(dayName)) Then
                     state = 1
                 End If
             End If
         ElseIf state = 1 Then   'next label element must have correct day number
-            If (objElement.tagName = "LABEL") Then
+            If (objElement.tagName = "LABEL") Or _
+               (objElement.tagName = "BDI") Then
                 If (Trim(objElement.innerText) = dayNumStr) Then
                     state = 2
                 Else
@@ -770,13 +795,15 @@ Sub IE_EnterDaysOff_TEMPO(objIE As Object, dayName As String, theDate As String,
         ElseIf state = 2 Then   'find next button: tagName "BUTTON"
             If (objElement.tagName = "BUTTON") Then
                 state = 3
-                If objElement.textContent = "" Then 'button is On (textContent is empty)
+                If (objElement.textContent = "") Or _
+                   (UCase(Trim(objElement.textContent)) = UCase(dayName)) Then
+                    'button is On - textContent is empty or contains the day name (as a tooltip)
                     If dayOffValue = "" Then 'desired value is On
                         'already On, nothing to do
                     Else 'desired value is Off
                         objElement.Click 'click button to change to Off
                     End If
-                Else 'button is Off (textContent = "OFF")
+                Else 'button is Off (textContent = "OFF" or "FLEX")
                     If dayOffValue = "" Then 'desired value is On
                         objElement.Click 'click button to change to On
                     Else 'desired value is Off
@@ -809,13 +836,15 @@ Function IE_VerifyDaysOff_TEMPO(objIE As Object, dayName As String, theDate As S
     For Each objElement In objIE.Document.all
         'Debug.Print objElement.tagName, objElement.ID
         If state = 0 Then   'look for label with the day name: tagName "LABEL" with innerText "Fri", for example
-            If (objElement.tagName = "LABEL") Then
+            If (objElement.tagName = "LABEL") Or _
+               (objElement.tagName = "BDI") Then
                 If (UCase(Trim(objElement.innerText)) = UCase(dayName)) Then
                     state = 1
                 End If
             End If
         ElseIf state = 1 Then   'next label element must have correct day number
-            If (objElement.tagName = "LABEL") Then
+            If (objElement.tagName = "LABEL") Or _
+               (objElement.tagName = "BDI") Then
                 If (Trim(objElement.innerText) = dayNumStr) Then
                     state = 2
                 Else
@@ -825,7 +854,9 @@ Function IE_VerifyDaysOff_TEMPO(objIE As Object, dayName As String, theDate As S
         ElseIf state = 2 Then   'find next button: tagName "BUTTON"
             If (objElement.tagName = "BUTTON") Then
                 state = 3
-                If objElement.textContent = "" Then 'button is On (textContent is empty)
+                If (objElement.textContent = "") Or _
+                   (UCase(Trim(objElement.textContent)) = UCase(dayName)) Then
+                    'button is On - textContent is empty or contains the day name (as a tooltip)
                     If dayOffValue = "" Then 'desired value is On
                         matches = True
                     End If
@@ -876,7 +907,8 @@ Function IE_GetWEDate_TEMPO(objIE As Object) As String
     For Each objElement In objIE.Document.all
         'Debug.Print objElement.tagName, objElement.ID
         If state = 0 Then   'look for Payroll W/E label: tagName "LABEL" with innerText "Payroll W/E:"
-            If (objElement.tagName = "LABEL") Then
+            If (objElement.tagName = "LABEL") Or _
+               (objElement.tagName = "BDI") Then
                 If (Trim(objElement.innerText) = "Payroll W/E:") Then
                     state = 1
                 End If
