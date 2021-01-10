@@ -505,7 +505,7 @@ Sub TS_ClearInstructions()
 
 ' Configuration
 '    Range("F22").Value = "https://tempofdb.external.lmco.com/fiori"    ' TEOMPO URL
-    Range("TEMPO_URL").Value = "https://tempofdb.external.lmco.com/fiori"    ' TEOMPO URL
+    Range("TEMPO_URL").Value = "https://tempo.external.lmco.com/fiori"    ' TEOMPO URL
 '    Range("G24").Select                     ' Enter all lines of labor
     Range("AllLabor_X").Select                     ' Enter all lines of labor
     Selection.ClearContents
@@ -523,7 +523,7 @@ Sub TS_ClearInstructions()
     Range("Double_Delay").Value = "2"                ' Double Delay
     Range("TEMPO_ShellHome_Suffix").Value = "#Shell-home"  ' Suffix for Shell Home Page
     Range("TEMPO_TimeEntry_Suffix").Value = "#ZTPOTIMESHEET2-record"  ' Suffix for Time Entry Page
-    Range("TEMPO_LoggedOff_URL").Value = "https://tempofdb.external.lmco.com/sap/public/bc/icf/logoff" ' URL for TEMPO logged off
+    Range("TEMPO_LoggedOff_URL").Value = "https://tempo.external.lmco.com/sap/public/bc/icf/logoff" ' URL for TEMPO logged off
     
 ' Return to Corner
     Range("A1").Select
