@@ -151,7 +151,7 @@ Sub TS_OpenTEMPO()
 ' Brings up TEMPO
 '
     Dim lSuccess As Long
-    lSuccess = ShellExecute(0, "Open", "https://tempofdb.external.lmco.com/fiori")
+    lSuccess = ShellExecute(0, "Open", "https://tempo.external.lmco.com/fiori")
 
 End Sub
 
