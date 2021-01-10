@@ -5,6 +5,7 @@
 ' 3.00 - Brian Whipp, based on UpTEMPO 1.0a3 (2016-09-13)
 ' 3.01 - Brian Whipp, included updates from UpTEMPO 1.0a4 (2016-09-23)
 ' 3.02 - Brian Whipp
+' 3.19 - Brian Whipp - Updated clean and import macros for new Configuration Field - WorkSchedule
 '
 ' ********************************************
 
@@ -540,6 +541,29 @@ Sub TS_ClearConfiguration()
 
     Sheets("Configuration").Select
     
+' Rev 3.19
+    ActiveWorkbook.Names.Add _
+      Name:="WorkSchedule", _
+      RefersTo:="=Configuration!$M$2"
+    
+    Range("WorkSchedule").Select
+    
+    With Selection.Validation
+        .Delete
+        .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:= _
+        xlBetween, Formula1:="Flex 9_80A, Flex 9_80B"
+        .IgnoreBlank = False
+        .InCellDropdown = True
+        .InputTitle = ""
+        .ErrorTitle = ""
+        .InputMessage = ""
+        .ErrorMessage = ""
+        .ShowInput = True
+        .ShowError = True
+    End With
+
+    Range("WorkSchedule").Value = "Flex 9_80A" ' Select Work Schedule Default
+
 ' Reset Values
 '    Range("A2").Value = "6"                 ' End of the Week Day
     Range("EndoftheWeekDay").Value = "6"                 ' End of the Week Day
@@ -558,6 +582,7 @@ Sub TS_ClearConfiguration()
 '    Range("K2").Select                      ' Holiday Hours for Year
     Range("HolidayHrs").Select                      ' Holiday Hours for Year
     Selection.ClearContents
+
 '    Range("A20").Value = "On"              ' Take it out of Deevloper Mode
     Range("Dev_Mode").Value = "On"              ' Take it out of Deevloper Mode
 '    Sheets("Configuration").Range("E20").Value = TS_MaxDefaultRows   ' Set Max Rows
@@ -573,7 +598,8 @@ Sub TS_ClearConfiguration()
     Range("WP_Dropdown").Select             ' Clear extra WP drop down list sorting
     Selection.ClearContents
 
-    Range("M:W").EntireColumn.Hidden = True  ' Hide Columns
+'Rev 3.19
+    Range("O:Y").EntireColumn.Hidden = True  ' Hide Columns
     
     Columns("B").ColumnWidth = 1.57 ' 16 pixels
     Columns("D").ColumnWidth = 1.57 ' 16 pixels
@@ -581,6 +607,7 @@ Sub TS_ClearConfiguration()
     Columns("H").ColumnWidth = 1.57 ' 16 pixels
     Columns("J").ColumnWidth = 1.57 ' 16 pixels
     Columns("L").ColumnWidth = 1.57 ' 16 pixels
+    Columns("N").ColumnWidth = 1.57 ' 16 pixels, Rev 3.19
     
     Columns("A").ColumnWidth = 21.57 '156 pixels
     Columns("C").ColumnWidth = 10.14 '76 pixels
@@ -588,10 +615,11 @@ Sub TS_ClearConfiguration()
     Columns("G").ColumnWidth = 14.57 '107 pixels
     Columns("I").ColumnWidth = 14.57 '107 pixels
     Columns("K").ColumnWidth = 14.57 '107 pixels
-    Columns("X").ColumnWidth = 8.43 '64 pixels
+    Columns("M").ColumnWidth = 14.57 '107 pixels, Rev 3.19
+    Columns("Z").ColumnWidth = 8.43 '64 pixels
     
-    Range("A:X").Font.Name = "Calibri"
-    Range("A:X").Font.Size = 11
+    Range("A:Z").Font.Name = "Calibri"
+    Range("A:Z").Font.Size = 11
 
 ' Reset Developer Mode
     Call TS_DeveloperMode
@@ -822,7 +850,11 @@ Sub TS_ClearLabor_Flex980()
 ' Reset Values
     Range("K2").Value = "=TODAY()+MOD(8-WEEKDAY(TODAY()),7)"           ' Payroll Week Ending Date, Was =TODAY()
     Range("F7").Value = "40"                 ' Hours goal for week
-    Range("G8").Formula = "=IF(G6="""",""X"","""")"  ' Fri Auto Select
+    
+' Rev 3.19
+' Was: Range("G8").Formula = "=IF(G6="""",""X"","""")"  ' Fri Auto Select
+    Range("G8").Formula = "=IF(OR(MOD(G5-DATE(2020,1,10),14)=IF(WorkSchedule=""Flex 9_80A"",0,7),G6=""""),""X"","""")"
+
     Range("H8").Value = "X"                  ' Sat Off
     Range("I8").Value = "X"                  ' Sun Off
     Range("J8").Select                       ' Mon On
@@ -833,8 +865,11 @@ Sub TS_ClearLabor_Flex980()
     Selection.ClearContents
     Range("M8").Select                       ' Thur On
     Selection.ClearContents
-    Range("N8").Formula = "=IF(N6="""",""X"","""")"   ' Fri Auto Select
-    
+
+' Rev 3.19
+' Was: Range("N8").Formula = "=IF(N6="""",""X"","""")"   ' Fri Auto Select
+    Range("N8").Formula = "=IF(OR(MOD(N5-DATE(2020,1,10),14)=IF(WorkSchedule=""Flex 9_80A"",0,7),N6=""""),""X"","""")"
+
     Range("K2").Select                      ' Place cursor back at home
     
 End Sub
@@ -851,7 +886,11 @@ Sub TS_ClearLabor_Flex980_2weeks()
 ' Reset Values
     Range("Q2").Value = "=TODAY()+MOD(8-WEEKDAY(TODAY()),7)"           ' Payroll Week Ending Date, Was =TODAY()
     Range("F7").Value = "40"                 ' Hours goal for week
-    Range("M8").Formula = "=IF(M6="""",""X"","""")"    ' Fri Auto Select
+    
+' Rev 3.19
+' Was: Range("M8").Formula = "=IF(M6="""",""X"","""")"    ' Fri Auto Select
+    Range("M8").Formula = "=IF(OR(MOD(M5-DATE(2020,1,10),14)=IF(WorkSchedule=""Flex 9_80A"",0,7),M6=""""),""X"","""")"
+    
     Range("N8").Value = "X"                  ' Sat Off
     Range("O8").Value = "X"                  ' Sun Off
     Range("P8").Select                       ' Mon On
@@ -862,7 +901,13 @@ Sub TS_ClearLabor_Flex980_2weeks()
     Selection.ClearContents
     Range("S8").Select                       ' Thur On
     Selection.ClearContents
-    Range("T8").Formula = "=IF(T6="""",""X"","""")"   ' Fri Auto Select
+
+' Rev 3.19
+' Was: Range("T8").Formula = "=IF(T6="""",""X"","""")"   ' Fri Auto Select
+    Range("T8").Formula = "=IF(OR(MOD(T5-DATE(2020,1,10),14)=IF(WorkSchedule=""Flex 9_80A"",0,7),T6=""""),""X"","""")"
+    Range("H8").Formula = "=IF(OR(MOD(H5-DATE(2020,1,10),14)=IF(WorkSchedule=""Flex 9_80A"",0,7),H6=""""),""X"","""")"
+    Range("Y8").Formula = "=IF(OR(MOD(Y5-DATE(2020,1,10),14)=IF(WorkSchedule=""Flex 9_80A"",0,7),Y6=""""),""X"","""")"
+    Range("AF8").Formula = "=IF(OR(MOD(AF5-DATE(2020,1,10),14)=IF(WorkSchedule=""Flex 9_80A"",0,7),AF6=""""),""X"","""")"
     
     Range("Q2").Select                      ' Place cursor back at home
 
@@ -1167,6 +1212,12 @@ End If
             End If
         End If
            
+' Added in version 3.19, Version field shifted two columns to the right
+           
+        If (Workbooks(DataBookName).Sheets("Configuration").Range("Z1") = "Version") Then
+            TSVer = Sheets("Configuration").Range("Z2").Value
+        End If
+           
 '        MsgBox "SheetExists = " & SheetExists & "; V208/209/300 = " & v208 & ";" & v209 & ";" & v300
 '        MsgBox "TSVer = " & TSVer
         
@@ -1214,6 +1265,12 @@ End If
              theValues(7) = Sheets("Configuration").Range("E11").Value
            End If
          
+' Added Work Schedule in version 3.19
+           If TSVer >= 3.19 Then
+             theValues(8) = Sheets("Configuration").Range("M2").Value
+           End If
+
+         
            Workbooks(ThisBookName).Activate
            Sheets("Configuration").Select
 '           Sheets("Configuration").Range("A2").Value = theValues(0)
@@ -1234,6 +1291,11 @@ End If
 '             Sheets("Configuration").Range("E20").Value = theValues(7)
              Sheets("Configuration").Range("Dev_Mode").Value = theValues(6)
              Sheets("Configuration").Range("AdjustRows").Value = theValues(7)
+           End If
+     
+' Added in version 3.19
+           If TSVer >= 3.19 Then
+             Sheets("Configuration").Range("WorkSchedule").Value = theValues(8)
            End If
      
 ' Return to Worksheet Year

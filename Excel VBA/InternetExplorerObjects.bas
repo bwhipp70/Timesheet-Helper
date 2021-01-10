@@ -209,15 +209,22 @@ Sub IE_EnterLabor(CallingSheet)
             '* Easiest Fix changes to not check for Friday Flag
             '*******************
             
+            '************************
+            '* Version 3.19 Fix
+            '* Removed hack to not check Friday Flag
+            '* based on new logic provided by Daniel Eby.
+            '* Now will check Friday Flag.
+            '************************
+            
             If CallingSheet = Labor_Flex980_ShName Then
-                For i = 0 To 6 'Was 7
+                For i = 0 To 7 'Was 6 with V3.16
                     If entriesMatch Then
                         entriesMatch = IE_VerifyDaysOff_TEMPO(objIE, Sheets(CallingSheet).Cells(4, 7 + i).Value, _
                             Sheets(CallingSheet).Cells(5, 7 + i).Value, Sheets(CallingSheet).Cells(8, 7 + i).Value)
                     End If
                 Next i
             ElseIf CallingSheet = Labor_Flex980_2weeks_ShName Then
-                For i = 0 To 6 'Was 7
+                For i = 0 To 7 'Was 6 with V3.16
                     If entriesMatch Then
                         entriesMatch = IE_VerifyDaysOff_TEMPO(objIE, Sheets(CallingSheet).Cells(4, 13 + i).Value, _
                             Sheets(CallingSheet).Cells(5, 13 + i).Value, Sheets(CallingSheet).Cells(8, 13 + i).Value)
