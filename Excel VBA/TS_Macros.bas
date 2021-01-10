@@ -6,6 +6,7 @@
 ' 3.01 - Brian Whipp, included updates from UpTEMPO 1.0a4 (2016-09-23)
 ' 3.02 - Brian Whipp
 ' 3.19 - Brian Whipp - Updated clean and import macros for new Configuration Field - WorkSchedule
+' 3.20 - Brian Whipp - 3 January 2021 - Added hooks for Flex410 (but broke 980 [Timesheet Row R] - will fix later).
 '
 ' ********************************************
 
@@ -385,6 +386,8 @@ Sub TS_ProtectSheets()
     Sheets("TSMasterFormulas").Protect
 ' 3.18 Addition
     Sheets("_ReadMe").Protect
+' 3.20 Addition
+    Sheets("Labor_Flex410").Protect
 
 ' Don't touch the Macro Warning sheet
 ' Otherwise, William's macros will break
@@ -411,6 +414,8 @@ Sub TS_UnprotectSheets()
 
 ' 3.18 Addition
     Sheets("_ReadMe").Unprotect
+' 3.20 Addition
+    Sheets("Labor_Flex410").Unprotect
 
 ' Don't touch the Macro Warning sheet
 ' Otherwise, William's macros will break
@@ -441,6 +446,10 @@ Sub TS_UnhideSheets()
     Sheets("ExecutionTimes").Visible = True
     Sheets("TSMasterFormulas").Visible = True
 
+' 3.20 Addition
+    Sheets("Labor_Flex410").Visible = True
+
+
 End Sub
 
 
@@ -470,6 +479,7 @@ Sub TS_CleanForDistribution()
     Call TS_ClearLabor_Flex980
     Call TS_ClearLabor_Flex980_2weeks
     Call TS_ClearWPs
+    Call TS_ClearLabor_Flex410            ' Added TSHelper 3.20
     
     'Make sure sheets are protected
     Call TS_ProtectSheets
@@ -505,7 +515,9 @@ Sub TS_ClearInstructions()
 
 ' Quick Start Section
 '    Range("E10").Value = "Flex 9/80"                ' Flex 9/80 Default
-    Range("WorkSchedule_Selected").Value = "Flex 9/80"                ' Flex 9/80 Default
+'    Range("WorkSchedule_Selected").Value = "Flex 9/80"                ' Flex 9/80 Default
+    Range("E10").Value = "Flex 9/80"                ' Flex 9/80 Default  Changed 3.20
+
 '    Range("E19").Value = "Flex 9/80"                ' Flex 9/80 Default
     Range("WorkSchedule_CopyFrom").Value = "Flex 9/80"                ' Flex 9/80 Default
 
@@ -548,11 +560,12 @@ Sub TS_ClearConfiguration()
     
     Range("WorkSchedule").Select
     
+' Rev 3.20
     With Selection.Validation
         .Delete
         .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:= _
-        xlBetween, Formula1:="Flex 9_80A, Flex 9_80B"
-        .IgnoreBlank = False
+        xlBetween, Formula1:="=Dropdown_Entries!$A$4:$A$8"
+        .IgnoreBlank = True
         .InCellDropdown = True
         .InputTitle = ""
         .ErrorTitle = ""
@@ -562,11 +575,11 @@ Sub TS_ClearConfiguration()
         .ShowError = True
     End With
 
-    Range("WorkSchedule").Value = "Flex 9_80A" ' Select Work Schedule Default
+    Range("WorkSchedule").Value = "Flex 4/10" ' Select Work Schedule Default
 
 ' Reset Values
 '    Range("A2").Value = "6"                 ' End of the Week Day
-    Range("EndoftheWeekDay").Value = "6"                 ' End of the Week Day
+    Range("EndoftheWeekDay").Formula = "=IF(WorkSchedule=""Flex 4/10"",1,6)"                 ' End of the Week Day  Changed in 3.20 to formula
 '    Range("C2").Select                      ' Worksheet Year
     Range("WS_Year").Select                      ' Worksheet Year
     Selection.ClearContents
@@ -913,6 +926,45 @@ Sub TS_ClearLabor_Flex980_2weeks()
 
 End Sub
 
+Sub TS_ClearLabor_Flex410()
+' Reset the Week Ending Date, everything else is Protected
+
+    Sheets("Labor_Flex410").Select
+
+'******************
+'* Changed default K2 formula to show the Sunday of the current TODAY week.
+'******************
+
+' Reset Values
+    Range("K2").Value = "=TODAY()+MOD(8-WEEKDAY(TODAY()),7)"           ' Payroll Week Ending Date, Was =TODAY()
+    Range("F7").Value = "40"                 ' Hours goal for week
+    
+' Rev 3.19
+' Was: Range("G8").Formula = "=IF(G6="""",""X"","""")"  ' Fri Auto Select
+'    Range("G8").Formula = "=IF(OR(MOD(G5-DATE(2020,1,10),14)=IF(WorkSchedule=""Flex 9_80A"",0,7),G6=""""),""X"","""")"
+
+    Range("G8").Value = ""                   ' Clear, not used
+    Range("H8").Select                       ' Mon On
+    Selection.ClearContents
+    Range("I8").Select                       ' Tue On
+    Selection.ClearContents
+    Range("J8").Select                       ' Wed On
+    Selection.ClearContents
+    Range("K8").Select                       ' Thur On
+    Selection.ClearContents
+    Range("L8").Value = "X"                  ' Fri Off
+    Range("M8").Value = "X"                  ' Sat Off
+    Range("N8").Value = "X"                  ' Sun Off
+
+    Columns("G").Hidden = True
+
+' Rev 3.19
+' Was: Range("N8").Formula = "=IF(N6="""",""X"","""")"   ' Fri Auto Select
+'    Range("N8").Formula = "=IF(OR(MOD(N5-DATE(2020,1,10),14)=IF(WorkSchedule=""Flex 9_80A"",0,7),N6=""""),""X"","""")"
+
+    Range("K2").Select                      ' Place cursor back at home
+    
+End Sub
 
 Sub TS_ClearWPs()
 ' Reset the Work Package Listings
@@ -1279,7 +1331,8 @@ End If
 '           Sheets("Configuration").Range("G2").Value = theValues(3)
 '           Sheets("Configuration").Range("I2").Value = theValues(4)
 '           Sheets("Configuration").Range("K2").Value = theValues(5)
-           Sheets("Configuration").Range("EndoftheWeekDay").Value = theValues(0)
+           ' Removed in 3.20
+           ' Sheets("Configuration").Range("EndoftheWeekDay").Value = theValues(0)
            Sheets("Configuration").Range("WS_Year").Value = theValues(1)
            Sheets("Configuration").Range("VacationAccrued").Value = theValues(2)
            Sheets("Configuration").Range("VacationStart").Value = theValues(3)

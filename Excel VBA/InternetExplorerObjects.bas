@@ -1,3 +1,9 @@
+' Timesheet Helper Comments
+'
+' 3.20 - 3 January 2021 - changes to IE_EnterLabor to accomodate new Flex410 sheet
+'
+'
+'***********************************************************************************
 Option Explicit
 '
 ' To get ShellWindows: go to the Tools menu at the top of the VBA editor,
@@ -110,10 +116,15 @@ Sub IE_EnterLabor(CallingSheet)
             FirstLaborRow = FirstLaborRow_Flex980_2weeks
             LastLaborRow = LastLaborRow_Flex980_2weeks
             colTotalHours = 21
+        ElseIf CallingSheet = Labor_Flex410_ShName Then                   ' Added TSHelper 3.20
+            FirstLaborRow = FirstLaborRow_Flex410
+            LastLaborRow = LastLaborRow_Flex410
+            colTotalHours = 15
         End If
         'check whether week ending date in TEMPO matches this week's date
         If (CallingSheet = Labor_Flex980_ShName) Or _
-            (CallingSheet = Labor_Flex980_2weeks_ShName) Then
+            (CallingSheet = Labor_Flex980_2weeks_ShName) Or _
+            (CallingSheet = Labor_Flex410_ShName) Then                     ' Added TSHelper 3.20
             MMDDYYYYstr = IE_GetWEDate_TEMPO(objIE)
             If MMDDYYYYstr = "" Then
                 Excel_Activate
@@ -124,6 +135,8 @@ Sub IE_EnterLabor(CallingSheet)
                 WEdate = Sheets(CallingSheet).Range("BH10").Value + 2
             ElseIf (CallingSheet = Labor_Flex980_2weeks_ShName) Then
                 WEdate = Sheets(CallingSheet).Range("BH10").Value + 2
+            ElseIf (CallingSheet = Labor_Flex410_ShName) Then                ' Added TSHelper 3.20
+                WEdate = Sheets(CallingSheet).Range("BH10").Value
             End If
             datestr = Format(WEdate, "mm/dd/yyyy")
             If MMDDYYYYstr <> datestr Then
@@ -149,6 +162,11 @@ Sub IE_EnterLabor(CallingSheet)
                 For i = 0 To 7
                     Call IE_EnterDaysOff_TEMPO(objIE, Sheets(CallingSheet).Cells(4, 13 + i).Value, _
                         Sheets(CallingSheet).Cells(5, 13 + i).Value, Sheets(CallingSheet).Cells(8, 13 + i).Value)
+                Next i
+            ElseIf CallingSheet = Labor_Flex410_ShName Then                                 ' Added TS Helper 3.20
+                For i = 0 To 6
+                    Call IE_EnterDaysOff_TEMPO(objIE, Sheets(CallingSheet).Cells(4, 8 + i).Value, _
+                        Sheets(CallingSheet).Cells(5, 8 + i).Value, Sheets(CallingSheet).Cells(8, 8 + i).Value)
                 Next i
             End If
             'prepare to enter labor
@@ -186,6 +204,17 @@ Sub IE_EnterLabor(CallingSheet)
                         theHours(5) = Sheets(CallingSheet).Cells(iRow, 18).Value 'Wed
                         theHours(6) = Sheets(CallingSheet).Cells(iRow, 19).Value 'Thu
                         theHours(7) = Sheets(CallingSheet).Cells(iRow, 20).Value 'Fri
+                        Call IE_EnterChargeObj_TEMPO(objIE, iEntries, Sheets(CallingSheet).Cells(iRow, 3).Value, _
+                            Sheets(CallingSheet).Cells(iRow, 5).Value, Sheets(CallingSheet).Cells(iRow, 6).Value, theHours)
+                    ElseIf CallingSheet = Labor_Flex410_ShName Then                                  ' Added TSHelper 3.20
+                        'theHours(0) = Sheets(CallingSheet).Cells(iRow, 7).Value 'Fri - deprecated
+                        theHours(0) = Sheets(CallingSheet).Cells(iRow, 8).Value 'Mon
+                        theHours(1) = Sheets(CallingSheet).Cells(iRow, 9).Value 'Tue
+                        theHours(2) = Sheets(CallingSheet).Cells(iRow, 10).Value 'Wed
+                        theHours(3) = Sheets(CallingSheet).Cells(iRow, 11).Value 'Thu
+                        theHours(4) = Sheets(CallingSheet).Cells(iRow, 12).Value 'Fri
+                        theHours(5) = Sheets(CallingSheet).Cells(iRow, 13).Value 'Sat
+                        theHours(6) = Sheets(CallingSheet).Cells(iRow, 14).Value 'Sun
                         Call IE_EnterChargeObj_TEMPO(objIE, iEntries, Sheets(CallingSheet).Cells(iRow, 3).Value, _
                             Sheets(CallingSheet).Cells(iRow, 5).Value, Sheets(CallingSheet).Cells(iRow, 6).Value, theHours)
                     End If
@@ -230,6 +259,13 @@ Sub IE_EnterLabor(CallingSheet)
                             Sheets(CallingSheet).Cells(5, 13 + i).Value, Sheets(CallingSheet).Cells(8, 13 + i).Value)
                     End If
                 Next i
+            ElseIf CallingSheet = Labor_Flex410_ShName Then                ' Added TSHelper 3.20
+                For i = 0 To 6 'Was 6 with V3.16
+                    If entriesMatch Then
+                        entriesMatch = IE_VerifyDaysOff_TEMPO(objIE, Sheets(CallingSheet).Cells(4, 8 + i).Value, _
+                            Sheets(CallingSheet).Cells(5, 8 + i).Value, Sheets(CallingSheet).Cells(8, 8 + i).Value)
+                    End If
+                Next i
             End If
             'prepare to verify labor
             iRow = FirstLaborRow
@@ -261,6 +297,17 @@ Sub IE_EnterLabor(CallingSheet)
                             theHours(5) = Sheets(CallingSheet).Cells(iRow, 18).Value 'Wed
                             theHours(6) = Sheets(CallingSheet).Cells(iRow, 19).Value 'Thu
                             theHours(7) = Sheets(CallingSheet).Cells(iRow, 20).Value 'Fri
+                            entriesMatch = IE_VerifyChargeObj_TEMPO(objIE, iEntries, Sheets(CallingSheet).Cells(iRow, 3).Value, _
+                                Sheets(CallingSheet).Cells(iRow, 5).Value, Sheets(CallingSheet).Cells(iRow, 6).Value, theHours)
+                        ElseIf CallingSheet = Labor_Flex410_ShName Then                     ' Added TSHelper 3.20
+                            'theHours(0) = Sheets(CallingSheet).Cells(iRow, 7).Value 'Fri  deprecated with Flex410
+                            theHours(0) = Sheets(CallingSheet).Cells(iRow, 8).Value 'Mon
+                            theHours(1) = Sheets(CallingSheet).Cells(iRow, 9).Value 'Tue
+                            theHours(2) = Sheets(CallingSheet).Cells(iRow, 10).Value 'Wed
+                            theHours(3) = Sheets(CallingSheet).Cells(iRow, 11).Value 'Thu
+                            theHours(4) = Sheets(CallingSheet).Cells(iRow, 12).Value 'Fri
+                            theHours(5) = Sheets(CallingSheet).Cells(iRow, 13).Value 'Sat
+                            theHours(6) = Sheets(CallingSheet).Cells(iRow, 14).Value 'Sun
                             entriesMatch = IE_VerifyChargeObj_TEMPO(objIE, iEntries, Sheets(CallingSheet).Cells(iRow, 3).Value, _
                                 Sheets(CallingSheet).Cells(iRow, 5).Value, Sheets(CallingSheet).Cells(iRow, 6).Value, theHours)
                         End If

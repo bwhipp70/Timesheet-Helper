@@ -1,3 +1,9 @@
+' Timesheet Helper Comments
+'
+' 3.20 - 3 January 2021 - Added a LE_Enter_Labor_Flex410()
+'
+'**********************************************************
+
 Option Explicit
 '
 'If desired screen does not appear in TimeOut seconds, abort the operation
@@ -25,6 +31,9 @@ Sub LE_Enter_Labor_Flex980()
 End Sub
 Sub LE_Enter_Labor_Flex980_2weeks()
     Call IE_EnterLabor(Labor_Flex980_2weeks_ShName)
+End Sub
+Sub LE_Enter_Labor_Flex410()
+    Call IE_EnterLabor(Labor_Flex410_ShName)
 End Sub
 Sub LE_GetUserValues(CallingSheet)
 ' Gets common user values from Instructions page

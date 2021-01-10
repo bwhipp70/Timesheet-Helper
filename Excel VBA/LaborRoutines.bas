@@ -1,3 +1,9 @@
+' Timesheet Helper Comments
+'
+' 3.20 - 3 January 2021 - Added ShName for Flex 410, changed Work Schedule Selected to TS Helper, other functions not used
+'
+'
+'***************************************************
 Option Explicit
 
 'File filter for Excel workbooks
@@ -7,6 +13,7 @@ Private Const WorkbookFileFilter = "Excel Workbooks (*.xls; *.xlsb; *.xlsm; *.xl
 Public Const Instructions_ShName = "Instructions"
 Public Const Labor_Flex980_ShName = "Labor_Flex980"
 Public Const Labor_Flex980_2weeks_ShName = "Labor_Flex980_2weeks"
+Public Const Labor_Flex410_ShName = "Labor_Flex410"                    ' Added TSHelper 3.20
 Public Const Simple_Labor_Adjust_ShName = "Simple Labor Adjustment"
 Public Const Dropdown_Entries_ShName = "Dropdown_Entries"
 
@@ -15,10 +22,13 @@ Public Const FirstLaborRow_Flex980 = 10
 Public Const LastLaborRow_Flex980 = 289
 Public Const FirstLaborRow_Flex980_2weeks = 10
 Public Const LastLaborRow_Flex980_2weeks = 289
+Public Const FirstLaborRow_Flex410 = 10                                 ' Added TSHelper 3.20
+Public Const LastLaborRow_Flex410 = 289                                 ' Added TSHelper 3.20
 
 'Work Schedule list entries
 Public Const WorkSchedule_Flex980 = "Flex 9/80"
 Public Const WorkSchedule_Flex980_2weeks = "Flex 9/80 (two-week view)"
+Public Const WorkSchedule_Flex410 = "Flex 4/10"                        ' Added TSHelper 3.20
 
 'Selected work schedule
 Public WorkSchedule
@@ -30,13 +40,14 @@ Private ThisSheetName
 
 Sub Get_Selected_Work_Schedule()
     'Get selected Work Schedule
-    WorkSchedule = Range("WorkSchedule_Selected").Value
+    WorkSchedule = Range("WorkSchedule_Selected").Value                 ' Moved named cell to Configuration Tab
 End Sub
 Sub Update_Work_Schedule_Selection()
     Call Get_Selected_Work_Schedule
     'Hide/unhide Labor sheets based on selected Work Schedule
     Sheets(Labor_Flex980_ShName).Visible = (WorkSchedule = WorkSchedule_Flex980)
     Sheets(Labor_Flex980_2weeks_ShName).Visible = (WorkSchedule = WorkSchedule_Flex980_2weeks)
+    Sheets(Labor_Flex410_ShName).Visible = (WorkSchedule = WorkSchedule_Flex410)    ' Added TSHelper 3.20
 End Sub
 Sub Labor_Sort_Memo_Flex980()
     Sheets(Labor_Flex980_ShName).Select
