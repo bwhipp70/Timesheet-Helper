@@ -256,7 +256,7 @@ Sub TS_UpdateMaxNames()
 
  ActiveWorkbook.Names.Add _
       Name:="TS_Gmax", _
-      RefersTo:="=Timesheet!$G$" & TS_MaxRows
+      RefersTo:="=Timesheet!$F$" & TS_MaxRows
 
  ActiveWorkbook.Names.Add _
       Name:="TS_Hmax", _
@@ -738,8 +738,8 @@ End If
     Columns("C").ColumnWidth = 4.57 '37 pixels
     Columns("D").ColumnWidth = 49.71 '353 pixels
     Columns("E").ColumnWidth = 12.86 '95 pixels
-    Columns("F").ColumnWidth = 4.57 '37 pixels
-    Columns("G").ColumnWidth = 5.86 '46 pixels
+    Columns("F").ColumnWidth = 5.86 '46 pixels
+    Columns("G").ColumnWidth = 4.57 '37 pixels
     Columns("H").ColumnWidth = 12.86 '95 pixels
     Columns("I").ColumnWidth = 5.43 '43 pixels
     Columns("J").ColumnWidth = 4.57 '37 pixels
@@ -770,7 +770,7 @@ Sub TS_ClearLabor_Flex980()
     Sheets("Labor_Flex980").Select
     
 ' Reset Values
-    Range("K2").Value = "01/01/2016"          ' Payroll Week Ending Date
+    Range("K2").Value = "01/01/2017"          ' Payroll Week Ending Date
     Range("F7").Value = "40"                 ' Hours goal for week
     Range("G8").Formula = "=IF(G6="""",""X"","""")"  ' Fri Auto Select
     Range("H8").Value = "X"                  ' Sat Off
@@ -795,7 +795,7 @@ Sub TS_ClearLabor_Flex980_2weeks()
     Sheets("Labor_Flex980_2weeks").Select
     
 ' Reset Values
-    Range("Q2").Value = "10/2/2016"          ' Payroll Week Ending Date
+    Range("Q2").Value = "01/01/2017"          ' Payroll Week Ending Date
     Range("F7").Value = "40"                 ' Hours goal for week
     Range("M8").Formula = "=IF(M6="""",""X"","""")"    ' Fri Auto Select
     Range("N8").Value = "X"                  ' Sat Off
@@ -1169,7 +1169,8 @@ End If
 
         If timesheetSh Then
         ' Copy everything down to last row
-        ' Columns A-E, G, L-M
+        ' v3.05 and before, Move Columns A-E, G, L-M
+        ' v3.06 and after, Move Columns A-F, L-M
         ' Determine number of total rows and used rows in source sheet
              Workbooks(DataBookName).Activate
              Sheets("Timesheet").Select
@@ -1192,13 +1193,22 @@ End If
              Sheets("Timesheet").Select
              ActiveSheet.Range("A2:E" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
              
+        ' If v.3.05 or earlier read from "G"; otherwise read from "F"
+             
+        If TSVer < 3.06 Then
              Workbooks(DataBookName).Activate
              Sheets("Timesheet").Select
              ActiveSheet.Range("G2:G" & importBottomRow).Select
              Selection.Copy
+        Else
+             Workbooks(DataBookName).Activate
+             Sheets("Timesheet").Select
+             ActiveSheet.Range("F2:F" & importBottomRow).Select
+             Selection.Copy
+        End If
              Workbooks(ThisBookName).Activate
              Sheets("Timesheet").Select
-             ActiveSheet.Range("G2:G" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+             ActiveSheet.Range("F2:F" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
              
              Workbooks(DataBookName).Activate
              Sheets("Timesheet").Select
