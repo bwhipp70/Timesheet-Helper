@@ -4,6 +4,7 @@
 ' Version:
 ' 3.00 - Brian Whipp, based on UpTEMPO 1.0a3 (2016-09-13)
 ' 3.01 - Brian Whipp, included updates from UpTEMPO 1.0a4 (2016-09-23)
+' 3.02 - Brian Whipp
 '
 ' ********************************************
 
@@ -60,6 +61,7 @@
 '   Name Manager - WP_List =OFFSET('WP #''s'!$A$2,0,0,COUNTA('WP #''s'!$A$2:$A$150))
 '   Name Manager - WP_List_Unique_alpha =OFFSET('WP #''s'!$I$2, 0, 0, COUNT(IF('WP #''s'!$I$2:$I$149="", "", 1)), 1)
 '   WP #'s, Column I, cell I:2 {=IFERROR(INDEX(WP_List, MATCH(0, IF(MAX(NOT(COUNTIF($I$1:I1, WP_List))*(COUNTIF(WP_List, ">"&WP_List)+1))=(COUNTIF(WP_List, ">"&WP_List)+1), 0, 1), 0)),"")}
+'
 '   Timing Values, COlumn I, Baseline = 1.88005
 '   Timing Values, WP_List = A2:A150 = 1.71694
 '   Timing Values, WP_List_Alpha_Unique = Column I = 2.0026
@@ -67,8 +69,7 @@
 
 
 
-
-
+' Variables used to resize the Timesheet
 Public TS_MaxRows As Long
 Public lastRow As Long
 Public BottomRow As Long
@@ -84,6 +85,10 @@ Private Const DevMode = "Dev_Mode"
 
 Sub TS_UpdateMaxRows()
 
+' Entry for the Macro Button
+' Determines the maximum used entries by looking for last # in Column C
+' And also determines overall size of sheet by last formula line
+
 ' Find current maximum number used
 
 Resize = True
@@ -92,19 +97,9 @@ Resize = True
 
 Application.Calculation = xlCalculationManual
 
-Call TS_CalcMaxRows
-Call TS_UpdateMaxNames
-Call TS_ClearTimesheet
-
-'If TS_MaxRows <= Lastrow Then
-'    Resize = False
-'    Application.Calculation = xlCalculationAutomatic
-'    Exit Sub
-'Else
-'    'Set up the names ranges
-'    Call TS_UpdateMaxNames
-'    Call TS_ClearTimesheet
-'End If
+Call TS_CalcMaxRows         ' Determine the last used row and last formula row
+Call TS_UpdateMaxNames      ' Set up the names to the new last row in the Name Manager
+Call TS_ClearTimesheet      ' Adjust Timesheet
 
 Application.Calculation = xlCalculationAutomatic
 
@@ -116,14 +111,20 @@ Dim sht As Worksheet
 
 Set sht = ThisWorkbook.Worksheets("Timesheet")
 
-TS_MaxRows = Sheets("Configuration").Range("E20").Value
+' User field, find desired length
+' TS_MaxRows = Sheets("Configuration").Range("E20").Value
+TS_MaxRows = Sheets("Configuration").Range("AdjustRows").Value
 
-'Ctrl + Shift + End
-  lastRow = sht.Cells(sht.Rows.Count, "C").End(xlUp).Row + 1
-  BottomRow = sht.Cells(sht.Rows.Count, "O").End(xlUp).Row + 1
+'Ctrl + Shift + End to find last used rows
+  lastRow = sht.Cells(sht.Rows.Count, "C").End(xlUp).Row + 1        ' Last user row
+  BottomRow = sht.Cells(sht.Rows.Count, "O").End(xlUp).Row + 1      ' Last Forumla row
+
+' If the user requested length would remove entires, set to max entries + 2 to provide buffer
+' Don't let them remove entries
 
 If TS_MaxRows < lastRow Then
-    Sheets("Configuration").Range("E20").Value = lastRow + 2
+'    Sheets("Configuration").Range("E20").Value = lastRow + 2
+    Sheets("Configuration").Range("AdjustRows").Value = lastRow + 2
     TS_MaxRows = lastRow + 2
 End If
 
@@ -141,6 +142,7 @@ Sub TS_UpdateMaxNames()
 '           C5 = Timesheet - H, I
 '           C6 = Timesheet - H, I
 '           C7 = Timesheet - H, I
+'           D15 = Timesheet - V
 ' Timesheet:    T = O, AM, AA
 '               U = AA, T
 '               V = AB, U
@@ -157,7 +159,7 @@ Sub TS_UpdateMaxNames()
 ' Conditional Formatting:  E, J, L
 
 
-' So, A, B, C, D, E, G, H, I, J, L, M, O, P, R, S, T, U, AA, AB, AI, AM
+' So, A, B, C, D, E, G, H, I, J, L, M, O, P, R, S, T, U, V, AA, AB, AI, AM
 
  ActiveWorkbook.Names.Add _
       Name:="TS_Amax", _
@@ -228,6 +230,10 @@ Sub TS_UpdateMaxNames()
       RefersTo:="=Timesheet!$U$" & TS_MaxRows
 
  ActiveWorkbook.Names.Add _
+      Name:="TS_Vmax", _
+      RefersTo:="=Timesheet!$V$" & TS_MaxRows
+
+ ActiveWorkbook.Names.Add _
       Name:="TS_AAmax", _
       RefersTo:="=Timesheet!$AA$" & TS_MaxRows
 
@@ -265,8 +271,10 @@ Sub TS_DevMode_On()
 
 Call TS_UnprotectSheets
 
+' Set the flag for the user
 Sheets("Configuration").Select
-Range("A20").Value = "On"
+' Range("A20").Value = "On"
+Range("Dev_Mode").Value = "On"
 
 Call TS_UnhideSheets
 Sheets("Configuration").Activate
@@ -275,8 +283,10 @@ End Sub
 Sub TS_DevMode_Off()
 ' Turn on Developer Mode
 
+' Set the flag for the user
 Sheets("Configuration").Select
-Range("A20").Value = "Off"
+'Range("A20").Value = "Off"
+Range("Dev_Mode").Value = "Off"
 
 Call TS_ProtectSheets
 Call TS_HideSheets
@@ -336,7 +346,7 @@ Sub TS_HideSheets()
     Sheets("Macro Warning").Visible = xlSheetHidden
     Sheets("ExecutionTimes").Visible = xlSheetHidden
     Sheets("TSMasterFormulas").Visible = xlSheetHidden
-    Call Update_Work_Schedule_Selection
+    Call Update_Work_Schedule_Selection     ' This will hide either the Labor_Flex980 or Labor_Flex980_2weeks sheet
 
 End Sub
 
@@ -386,7 +396,7 @@ Sub TS_CleanForDistribution()
     ' Reset to front page
     Call TS_ClearLM_Command_Media
     
-Application.Calculation = xlCalculationAutomatic
+    Application.Calculation = xlCalculationAutomatic
 
 End Sub
 Sub TS_ClearLM_Command_Media()
@@ -412,20 +422,29 @@ Sub TS_ClearInstructions()
     Sheets("Instructions").Select
 
 ' Quick Start Section
-    Range("E10").Value = "Flex 9/80"                ' Flex 9/80 Default
-    Range("E19").Value = "Flex 9/80"                ' Flex 9/80 Default
+'    Range("E10").Value = "Flex 9/80"                ' Flex 9/80 Default
+    Range("WorkSchedule_Selected").Value = "Flex 9/80"                ' Flex 9/80 Default
+'    Range("E19").Value = "Flex 9/80"                ' Flex 9/80 Default
+    Range("WorkSchedule_CopyFrom").Value = "Flex 9/80"                ' Flex 9/80 Default
 
 ' Configuration
-    Range("F22").Value = "https://tempofdb.external.lmco.com/fiori"    ' TEOMPO URL
-    Range("G24").Select                     ' Enter all lines of labor
+'    Range("F22").Value = "https://tempofdb.external.lmco.com/fiori"    ' TEOMPO URL
+    Range("TEMPO_URL").Value = "https://tempofdb.external.lmco.com/fiori"    ' TEOMPO URL
+'    Range("G24").Select                     ' Enter all lines of labor
+    Range("AllLabor_X").Select                     ' Enter all lines of labor
     Selection.ClearContents
-    Range("G26").Value = "X"                ' Enable Macro Warning
-    Range("I28").Value = "X"
+'    Range("G26").Value = "X"                ' Enable Macro Warning
+    Range("MacroWarning_X").Value = "X"                ' Enable Macro Warning
+'    Range("I28").Value = "X"
+    Range("CompletedDialog_X").Value = "X"
 
 ' Web Interface Tuning
-    Range("C63").Value = "15"               ' Timeout
-    Range("C65").Value = "1"                ' Delay
-    Range("C67").Value = "2"                ' Double Delay
+'    Range("C63").Value = "15"               ' Timeout
+'    Range("C65").Value = "1"                ' Delay
+'    Range("C67").Value = "2"                ' Double Delay
+    Range("Timeout_Delay").Value = "15"               ' Timeout
+    Range("Single_Delay").Value = "1"                ' Delay
+    Range("Double_Delay").Value = "2"                ' Double Delay
     
 ' Return to Corner
     Range("A1").Select
@@ -438,25 +457,57 @@ Sub TS_ClearConfiguration()
     Sheets("Configuration").Select
     
 ' Reset Values
-    Range("A2").Value = "6"                 ' End of the Week Day
-    Range("C2").Select                      ' Worksheet Year
+'    Range("A2").Value = "6"                 ' End of the Week Day
+    Range("EndoftheWeekDay").Value = "6"                 ' End of the Week Day
+'    Range("C2").Select                      ' Worksheet Year
+    Range("WS_Year").Select                      ' Worksheet Year
     Selection.ClearContents
-    Range("E2").Select                      ' Vacation Accrued
+'    Range("E2").Select                      ' Vacation Accrued
+    Range("VacationAccrued").Select                      ' Vacation Accrued
     Selection.ClearContents
-    Range("G2").Select                      ' Vacation Hours at Start of Year
+'    Range("G2").Select                      ' Vacation Hours at Start of Year
+    Range("VacationStart").Select                      ' Vacation Hours at Start of Year
     Selection.ClearContents
-    Range("I2").Select                      ' Floating Holidays for Year
+'    Range("I2").Select                      ' Floating Holidays for Year
+    Range("FloatHolidays").Select                      ' Floating Holidays for Year
     Selection.ClearContents
-    Range("K2").Select                      ' Holiday Hours for Year
+'    Range("K2").Select                      ' Holiday Hours for Year
+    Range("HolidayHrs").Select                      ' Holiday Hours for Year
     Selection.ClearContents
-    Range("A20").Value = "On"              ' Take it out of Deevloper Mode
+'    Range("A20").Value = "On"              ' Take it out of Deevloper Mode
+    Range("Dev_Mode").Value = "On"              ' Take it out of Deevloper Mode
+'    Sheets("Configuration").Range("E20").Value = TS_MaxDefaultRows   ' Set Max Rows
+    Sheets("Configuration").Range("AdjustRows").Value = TS_MaxDefaultRows   ' Set Max Rows
+
+'    Range("H19").Value = "X"                 ' Import Configuration
+'    Range("H20").Value = "X"                 ' Import WP #'s
+'    Range("H21").Value = "X"                 ' Import Timesheet
+    Range("ImportConfig").Value = "X"                 ' Import Configuration
+    Range("ImportWP").Value = "X"                 ' Import WP #'s
+    Range("ImportTimesheet").Value = "X"                 ' Import Timesheet
+
+    Range("M:W").EntireColumn.Hidden = True  ' Hide Columns
+    
+    Columns("B").ColumnWidth = 1.57 ' 16 pixels
+    Columns("D").ColumnWidth = 1.57 ' 16 pixels
+    Columns("F").ColumnWidth = 1.57 ' 16 pixels
+    Columns("H").ColumnWidth = 1.57 ' 16 pixels
+    Columns("J").ColumnWidth = 1.57 ' 16 pixels
+    Columns("L").ColumnWidth = 1.57 ' 16 pixels
+    
+    Columns("A").ColumnWidth = 21.57 '156 pixels
+    Columns("C").ColumnWidth = 10.14 '76 pixels
+    Columns("E").ColumnWidth = 15.71 '115 pixels
+    Columns("G").ColumnWidth = 14.57 '107 pixels
+    Columns("I").ColumnWidth = 14.57 '107 pixels
+    Columns("K").ColumnWidth = 14.57 '107 pixels
+    Columns("X").ColumnWidth = 8.43 '64 pixels
+    
+    Range("A:X").Font.Name = "Calibri"
+    Range("A:X").Font.Size = 11
+
+' Reset Developer Mode
     Call TS_DeveloperMode
-    Sheets("Configuration").Range("E20").Value = TS_MaxDefaultRows   ' Set Max Rows
-
-    Range("H19").Value = "X"                 ' Import Configuration
-    Range("H20").Value = "X"                 ' Import WP #'s
-    Range("H21").Value = "X"                 ' Import Timesheet
-
 
 ' Return to Worksheet Year
     
@@ -469,6 +520,14 @@ Sub TS_ClearSummary()
 
     Sheets("Summary").Select
     
+    Columns("A").ColumnWidth = 1.29 '14 pixels
+    Columns("B").ColumnWidth = 19.57 '142 pixels
+    Columns("C").ColumnWidth = 13.29 '98 pixels
+    Columns("D").ColumnWidth = 17.57 '128 pixels
+    
+    Range("A:D").Font.Name = "Calibri"
+    Range("A:D").Font.Size = 11
+   
 ' Reset Value
     Range("C25").Select                      ' Charge Number Lookup
     Selection.ClearContents
@@ -524,9 +583,15 @@ Selection.ClearContents
 ' an error - an array error with format painter.
 ' Need to break it up into two sections
 
+' If Clean for Distribution, start at the very top
+If Not Resize Then
+    lastRow = 2
+End If
+    
+
 Sheets("TSMasterFormulas").Select
 
-Range("A2:N2").Select
+Range("A2:N3").Select
 Selection.Copy
 
 Sheets("Timesheet").Select
@@ -541,7 +606,7 @@ End With
 
 Sheets("TSMasterFormulas").Select
 
-Range("O2:AR2").Select
+Range("O2:AR3").Select
 Selection.Copy
 
 Sheets("Timesheet").Select
@@ -555,8 +620,8 @@ With Sheets("Timesheet").Range("O" & lastRow)
 End With
 
 
-If TS_MaxRows < 2 Then
-    TS_MaxRows = 2
+If TS_MaxRows < 3 Then
+    TS_MaxRows = 3
 End If
 
 If TS_MaxRows < lastRow Then
@@ -568,7 +633,7 @@ If Resize Then
     tempRange = "A" & lastRow & ":AR" & TS_MaxRows
     Worksheets("Timesheet").Range(tempRange).FillDown
 Else
-    Worksheets("Timesheet").Range("A2:AR" & TS_MaxDefaultRows).FillDown
+    Worksheets("Timesheet").Range("A3:AR" & TS_MaxDefaultRows).FillDown
 End If
 
 Sheets("Timesheet").Select
@@ -590,6 +655,25 @@ Else
     Worksheets("Timesheet").Range(tempRange).FillDown
 End If
 
+    Range("O:AR").EntireColumn.Hidden = True  ' Hide Columns
+    
+    Columns("A").ColumnWidth = 12#   '89 pixels
+    Columns("B").ColumnWidth = 4.57 '37 pixels
+    Columns("C").ColumnWidth = 4.57 '37 pixels
+    Columns("D").ColumnWidth = 49.71 '353 pixels
+    Columns("E").ColumnWidth = 12.86 '95 pixels
+    Columns("F").ColumnWidth = 4.57 '37 pixels
+    Columns("G").ColumnWidth = 5.86 '46 pixels
+    Columns("H").ColumnWidth = 12.86 '95 pixels
+    Columns("I").ColumnWidth = 5.43 '43 pixels
+    Columns("J").ColumnWidth = 4.57 '37 pixels
+    Columns("K").ColumnWidth = 5.43 '43 pixels
+    Columns("L").ColumnWidth = 7.86 '60 pixels
+    Columns("M").ColumnWidth = 26.71 '192 pixels
+    
+    Range("A:AR").Font.Name = "Consolas"
+    Range("A:AR").Font.Size = 8
+
 'If Timesheet was originally protected, reprotect
 If tsProtected Then
     Sheets("Timesheet").Protect
@@ -598,9 +682,8 @@ End If
 If Not tsMasterVisible Then
     Sheets("TSMasterFormulas").Visible = xlSheetHidden
 End If
-
-
-
+    
+    
     Range("A2").Select                      ' Place cursor back at home
 
 End Sub
@@ -693,6 +776,22 @@ Sub TS_ClearWPs()
     
     Range("A11:A150").Value = "_blank_"
     
+    Range("I:I").EntireColumn.Hidden = True  ' Hide Columns
+    
+    Columns("A").ColumnWidth = 14.14 '104 pixels
+    Columns("B").ColumnWidth = 14.14 '104 pixels
+    Columns("C").ColumnWidth = 76.14 '538 pixels
+    Columns("D").ColumnWidth = 17.57 '128 pixels
+    Columns("E").ColumnWidth = 8.57  '65 pixels
+    Columns("F").ColumnWidth = 10.14 '76 pixels
+    Columns("G").ColumnWidth = 24.86 '179 pixels
+    
+    Range("A1:G1").Font.Name = "Calibri"
+    Range("A1:G1").Font.Size = 13
+    
+    Range("A2:G150").Font.Name = "Consolas"
+    Range("A2:G150").Font.Size = 8
+    
     Range("A2").Select                  ' Put cursor back at home
 
 End Sub
@@ -707,7 +806,6 @@ Dim theError
 Dim configSh As Boolean
 Dim wpSh As Boolean
 Dim timesheetSh As Boolean
-Dim Continue_Import As Boolean
 Dim v208 As Boolean
 Dim v209 As Boolean
 Dim v300 As Boolean
@@ -719,6 +817,7 @@ Dim i
 Dim importBottomRow As Long
 Dim testString As String
 Dim tsProtected As Boolean
+Dim v208len As Long
 
 ' Grab sheet protection state to restore it later.
 ' Must unprotect the sheet to make changes.
@@ -734,8 +833,7 @@ v209 = False
 v300 = False
 TSVer = 0
 
-Continue_Import = False
-
+' Dummy string to validate if workbook to import is correct
 testString = ""
 
 ' Determine which sheets to import
@@ -745,15 +843,18 @@ timesheetSh = False
 
 Sheets("Configuration").Select
 
-If (Range("H19").Value <> "") Then
+'If (Range("H19").Value <> "") Then
+If (Range("ImportConfig").Value <> "") Then
     configSh = True
 End If
 
-If (Range("H20").Value <> "") Then
+'If (Range("H20").Value <> "") Then
+If (Range("ImportWP").Value <> "") Then
     wpSh = True
 End If
 
-If (Range("H21").Value <> "") Then
+'If (Range("H21").Value <> "") Then
+If (Range("ImportTimesheet").Value <> "") Then
     timesheetSh = True
 End If
 
@@ -779,12 +880,9 @@ End If
             Worksheets(ThisSheetName).Activate      'And make sure this same worksheet is selected (should be!)
         End If
    
-        ' Put in code to transfer data here
         ' Configuration and WP #'s will be version based
         ' Transfer in appropriate data
                        
-        ' this needs help, having trouble detecting a sheet existence
-        
         SheetExists = False
         
         ' Make sure it is a valid workbook
@@ -795,9 +893,9 @@ End If
         testString = Worksheets("Change History").Range("A1")
         On Error GoTo 0
         If testString = "Rev History" Then
-            SheetExists = True
+            SheetExists = True      ' Sheet Exists, so probably a good import candidate
         Else
-            SheetExists = False
+            SheetExists = False     ' Sheet does not exist, not a good import candidate
         End If
         
         If Not SheetExists Then
@@ -839,7 +937,7 @@ End If
         
 '       Needs to be V2.08 or newer to import.
 
-        If (Not v208) And (Not v209) And (Not v300) Then
+        If (Not v208) And (Not v209) And (Not v300) And (Not (TSVer > 3)) Then
             Call TS_Import_Close_Workbook
 '            MsgBox "Invalid Workbook File, Please Try Again"
             result = MsgBox("File """ & DataBookName & """ is not a supported import format." & Chr(13) & Chr(13) & _
@@ -850,6 +948,11 @@ End If
                 End If
             Exit Sub
         End If
+        
+' Disable calculation to speed things up
+' Wanted to do this after validity check so as to not accidentally leave it off
+
+    Application.Calculation = xlCalculationManual
         
 ' Import the Configuration Tab values
         If configSh Then
@@ -870,19 +973,37 @@ End If
              theValues(7) = Sheets("Configuration").Range("E20").Value
            End If
          
+' Moved some items around in 3.02
+           If TSVer >= 3.02 Then
+             theValues(6) = Sheets("Configuration").Range("A11").Value
+             theValues(7) = Sheets("Configuration").Range("E11").Value
+           End If
+         
            Workbooks(ThisBookName).Activate
            Sheets("Configuration").Select
-           Sheets("Configuration").Range("A2").Value = theValues(0)
-           Sheets("Configuration").Range("C2").Value = theValues(1)
-           Sheets("Configuration").Range("E2").Value = theValues(2)
-           Sheets("Configuration").Range("G2").Value = theValues(3)
-           Sheets("Configuration").Range("I2").Value = theValues(4)
-           Sheets("Configuration").Range("K2").Value = theValues(5)
+'           Sheets("Configuration").Range("A2").Value = theValues(0)
+'           Sheets("Configuration").Range("C2").Value = theValues(1)
+'           Sheets("Configuration").Range("E2").Value = theValues(2)
+'           Sheets("Configuration").Range("G2").Value = theValues(3)
+'           Sheets("Configuration").Range("I2").Value = theValues(4)
+'           Sheets("Configuration").Range("K2").Value = theValues(5)
+           Sheets("Configuration").Range("EndoftheWeekDay").Value = theValues(0)
+           Sheets("Configuration").Range("WS_Year").Value = theValues(1)
+           Sheets("Configuration").Range("VacationAccrued").Value = theValues(2)
+           Sheets("Configuration").Range("VacationStart").Value = theValues(3)
+           Sheets("Configuration").Range("FloatHolidays").Value = theValues(4)
+           Sheets("Configuration").Range("HolidayHrs").Value = theValues(5)
          
            If v300 Then
-             Sheets("Configuration").Range("A20").Value = theValues(6)
-             Sheets("Configuration").Range("E20").Value = theValues(7)
+'             Sheets("Configuration").Range("A20").Value = theValues(6)
+'             Sheets("Configuration").Range("E20").Value = theValues(7)
+             Sheets("Configuration").Range("Dev_Mode").Value = theValues(6)
+             Sheets("Configuration").Range("AdjustRows").Value = theValues(7)
            End If
+     
+' Return to Worksheet Year
+    
+           Range("C2").Select
      
         End If
         
@@ -917,8 +1038,50 @@ End If
                Workbooks(ThisBookName).Activate
                Sheets("WP #'s").Select
                ActiveSheet.Range("C2:G150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+            Else
+                If v208 Then
+                   Workbooks(DataBookName).Activate
+                   Sheets("Configuration").Select
+                   ' Figure out how many lines are used in the shortcut
+                   v208len = Range("N2:N20").Cells.SpecialCells(xlCellTypeConstants).Count
+                   ' Copy only the used rows
+                   ActiveSheet.Range("N2:N" & 2 + v208len - 1).Select
+                   Selection.Copy
+                   Workbooks(ThisBookName).Activate
+                   Sheets("WP #'s").Select
+                   ActiveSheet.Range("A2:A" & 2 + v208len - 1).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+                   
+                   Workbooks(DataBookName).Activate
+                   Sheets("Configuration").Select
+                   ActiveSheet.Range("M2:M" & 2 + v208len - 1).Select
+                   Selection.Copy
+                   Workbooks(ThisBookName).Activate
+                   Sheets("WP #'s").Select
+                   ActiveSheet.Range("B2:B" & 2 + v208len - 1).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+                
+                   ' Copy all WPs up to the maximum number of free rows
+                   Workbooks(DataBookName).Activate
+                   Sheets("WP #'s").Select
+                   ActiveSheet.Range("A2:A" & 150 - v208len).Select
+                   Selection.Copy
+                   Workbooks(ThisBookName).Activate
+                   Sheets("WP #'s").Select
+                   ActiveSheet.Range("A" & 2 + v208len & ":A150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+            
+                   Workbooks(DataBookName).Activate
+                   Sheets("WP #'s").Select
+                   ActiveSheet.Range("B2:F" & 150 - v208len).Select
+                   Selection.Copy
+                   Workbooks(ThisBookName).Activate
+                   Sheets("WP #'s").Select
+                   ActiveSheet.Range("C" & 2 + v208len & ":G150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+                
+                End If
+            
             End If
           End If
+        
+        Range("A2").Select                  ' Put cursor back at home
         
         End If
         
@@ -936,7 +1099,8 @@ End If
         ' Set up destination sheet length
              Workbooks(ThisBookName).Activate
              Sheets("Configuration").Select
-             Range("E20").Value = importBottomRow - 1
+'             Range("E20").Value = importBottomRow - 1
+             Range("AdjustRows").Value = importBottomRow - 1
              Call TS_UpdateMaxRows
              
         ' Copy data
@@ -964,6 +1128,7 @@ End If
              Sheets("Timesheet").Select
              ActiveSheet.Range("L2:M" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
              
+        Range("A2").Select                      ' Place cursor back at home
   
         End If
         
@@ -975,6 +1140,10 @@ End If
         Worksheets(ThisSheetName).Activate 'And original worksheet
         result = MsgBox("Successfully imported data from file" & Chr(13) & _
                     """" & DataBookName & """.", vbInformation)
+    
+' Let's turn calculation on again
+    Application.Calculation = xlCalculationAutomatic
+ 
     
 'If Timesheet was originally protected, reprotect
 If tsProtected Then
