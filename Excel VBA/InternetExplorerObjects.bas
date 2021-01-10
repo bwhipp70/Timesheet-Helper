@@ -192,24 +192,15 @@ Sub IE_EnterLabor(CallingSheet)
             'begin verification of entered data
             entriesMatch = True  'start as true, change to false if any entry does not match
             'verify days off
-            
-            '*******************
-            '* Version 3.16 PTR
-            '* Error when on OFF Friday has regular hours
-            '* The flag for the day on TIMESHEET Tab is cleared
-            '* But TEMPO has the flag set to OFF, therefore a mismatch
-            '* Easiest Fix changes to not check for Friday Flag
-            '*******************
-            
             If CallingSheet = Labor_Flex980_ShName Then
-                For i = 0 To 6 'Was 7
+                For i = 0 To 7
                     If entriesMatch Then
                         entriesMatch = IE_VerifyDaysOff_TEMPO(objIE, Sheets(CallingSheet).Cells(4, 7 + i).Value, _
                             Sheets(CallingSheet).Cells(5, 7 + i).Value, Sheets(CallingSheet).Cells(8, 7 + i).Value)
                     End If
                 Next i
             ElseIf CallingSheet = Labor_Flex980_2weeks_ShName Then
-                For i = 0 To 6 'Was 7
+                For i = 0 To 7
                     If entriesMatch Then
                         entriesMatch = IE_VerifyDaysOff_TEMPO(objIE, Sheets(CallingSheet).Cells(4, 13 + i).Value, _
                             Sheets(CallingSheet).Cells(5, 13 + i).Value, Sheets(CallingSheet).Cells(8, 13 + i).Value)
