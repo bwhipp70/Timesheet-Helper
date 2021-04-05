@@ -73,6 +73,18 @@ Sub Labor_Sort_Memo_Flex980_2weeks()
     Call ProtectSheet(ActiveSheet.Name)
     Range("B9").Select
 End Sub
+Sub Labor_Sort_Memo_Flex410() ' Added TSHelper 3.21
+    Sheets(Labor_Flex410_ShName).Select
+    ActiveSheet.Unprotect
+    Range("B" & FirstLaborRow_Flex980 & ":O" & LastLaborRow_Flex410).Select
+    Selection.Sort Key1:=Range("B" & FirstLaborRow_Flex980), _
+        Order1:=xlAscending, Key2:=Range("C" & FirstLaborRow_Flex410), _
+        Order2:=xlAscending, Key3:=Range("E" & FirstLaborRow_Flex410), _
+        Order2:=xlAscending, Header:=xlNo, OrderCustom:=1, MatchCase:= _
+        False, Orientation:=xlTopToBottom
+    Call ProtectSheet(ActiveSheet.Name)
+    Range("B6").Select
+End Sub
 Sub Labor_Sort_Workpackage_Flex980()
     Sheets(Labor_Flex980_ShName).Select
     ActiveSheet.Unprotect
@@ -96,6 +108,18 @@ Sub Labor_Sort_Workpackage_Flex980_2weeks()
         False, Orientation:=xlTopToBottom
     Call ProtectSheet(ActiveSheet.Name)
     Range("C9").Select
+End Sub
+Sub Labor_Sort_Workpackage_Flex410() ' Added TSHelper 3.21
+    Sheets(Labor_Flex410_ShName).Select
+    ActiveSheet.Unprotect
+    Range("B" & FirstLaborRow_Flex980 & ":O" & LastLaborRow_Flex410).Select
+    Selection.Sort Key1:=Range("C" & FirstLaborRow_Flex980), _
+        Order1:=xlAscending, Key2:=Range("E" & FirstLaborRow_Flex410), _
+        Order2:=xlAscending, Key3:=Range("B" & FirstLaborRow_Flex410), _
+        Order2:=xlAscending, Header:=xlNo, OrderCustom:=1, MatchCase:= _
+        False, Orientation:=xlTopToBottom
+    Call ProtectSheet(ActiveSheet.Name)
+    Range("C6").Select
 End Sub
 Sub ClearLaborHours()
 Dim result
