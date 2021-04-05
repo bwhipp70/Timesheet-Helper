@@ -193,8 +193,13 @@ Sub IE_EnterLabor(CallingSheet)
                         theHours(5) = Sheets(CallingSheet).Cells(iRow, 12).Value 'Wed
                         theHours(6) = Sheets(CallingSheet).Cells(iRow, 13).Value 'Thu
                         theHours(7) = Sheets(CallingSheet).Cells(iRow, 14).Value 'Fri
-                        Call IE_EnterChargeObj_TEMPO(objIE, iEntries, Sheets(CallingSheet).Cells(iRow, 3).Value, _
-                            Sheets(CallingSheet).Cells(iRow, 5).Value, Sheets(CallingSheet).Cells(iRow, 6).Value, theHours)
+                        ' Added in Rev 3.21 - sending the WPM Field
+                        Call IE_EnterChargeObj_TEMPO(objIE, iEntries, _
+                            Left(Sheets(CallingSheet).Cells(iRow, 2).Value, 10), _
+                            Sheets(CallingSheet).Cells(iRow, 3).Value, _
+                            Sheets(CallingSheet).Cells(iRow, 5).Value, _
+                            Sheets(CallingSheet).Cells(iRow, 6).Value, _
+                            theHours)
                     ElseIf CallingSheet = Labor_Flex980_2weeks_ShName Then
                         theHours(0) = Sheets(CallingSheet).Cells(iRow, 13).Value 'Fri
                         theHours(1) = Sheets(CallingSheet).Cells(iRow, 14).Value 'Sat
@@ -204,8 +209,13 @@ Sub IE_EnterLabor(CallingSheet)
                         theHours(5) = Sheets(CallingSheet).Cells(iRow, 18).Value 'Wed
                         theHours(6) = Sheets(CallingSheet).Cells(iRow, 19).Value 'Thu
                         theHours(7) = Sheets(CallingSheet).Cells(iRow, 20).Value 'Fri
-                        Call IE_EnterChargeObj_TEMPO(objIE, iEntries, Sheets(CallingSheet).Cells(iRow, 3).Value, _
-                            Sheets(CallingSheet).Cells(iRow, 5).Value, Sheets(CallingSheet).Cells(iRow, 6).Value, theHours)
+                        ' Added in Rev 3.21 - sending the WPM Field
+                        Call IE_EnterChargeObj_TEMPO(objIE, iEntries, _
+                            Left(Sheets(CallingSheet).Cells(iRow, 2).Value, 10), _
+                            Sheets(CallingSheet).Cells(iRow, 3).Value, _
+                            Sheets(CallingSheet).Cells(iRow, 5).Value, _
+                            Sheets(CallingSheet).Cells(iRow, 6).Value, _
+                            theHours)
                     ElseIf CallingSheet = Labor_Flex410_ShName Then                                  ' Added TSHelper 3.20
                         'theHours(0) = Sheets(CallingSheet).Cells(iRow, 7).Value 'Fri - deprecated
                         theHours(0) = Sheets(CallingSheet).Cells(iRow, 8).Value 'Mon
@@ -215,8 +225,13 @@ Sub IE_EnterLabor(CallingSheet)
                         theHours(4) = Sheets(CallingSheet).Cells(iRow, 12).Value 'Fri
                         theHours(5) = Sheets(CallingSheet).Cells(iRow, 13).Value 'Sat
                         theHours(6) = Sheets(CallingSheet).Cells(iRow, 14).Value 'Sun
-                        Call IE_EnterChargeObj_TEMPO(objIE, iEntries, Sheets(CallingSheet).Cells(iRow, 3).Value, _
-                            Sheets(CallingSheet).Cells(iRow, 5).Value, Sheets(CallingSheet).Cells(iRow, 6).Value, theHours)
+                        ' Added in Rev 3.21 - sending the WPM Field
+                        Call IE_EnterChargeObj_TEMPO(objIE, iEntries, _
+                            Left(Sheets(CallingSheet).Cells(iRow, 2).Value, 10), _
+                            Sheets(CallingSheet).Cells(iRow, 3).Value, _
+                            Sheets(CallingSheet).Cells(iRow, 5).Value, _
+                            Sheets(CallingSheet).Cells(iRow, 6).Value, _
+                            theHours)
                     End If
                     iEntries = iEntries + 1
                 End If
@@ -286,8 +301,13 @@ Sub IE_EnterLabor(CallingSheet)
                             theHours(5) = Sheets(CallingSheet).Cells(iRow, 12).Value 'Wed
                             theHours(6) = Sheets(CallingSheet).Cells(iRow, 13).Value 'Thu
                             theHours(7) = Sheets(CallingSheet).Cells(iRow, 14).Value 'Fri
-                            entriesMatch = IE_VerifyChargeObj_TEMPO(objIE, iEntries, Sheets(CallingSheet).Cells(iRow, 3).Value, _
-                                Sheets(CallingSheet).Cells(iRow, 5).Value, Sheets(CallingSheet).Cells(iRow, 6).Value, theHours)
+                            ' Added in Rev 3.21 - sending the WPM Field
+                            entriesMatch = IE_VerifyChargeObj_TEMPO(objIE, iEntries, _
+                                Left(Sheets(CallingSheet).Cells(iRow, 2).Value, 10), _
+                                Sheets(CallingSheet).Cells(iRow, 3).Value, _
+                                Sheets(CallingSheet).Cells(iRow, 5).Value, _
+                                Sheets(CallingSheet).Cells(iRow, 6).Value, _
+                                theHours)
                         ElseIf CallingSheet = Labor_Flex980_2weeks_ShName Then
                             theHours(0) = Sheets(CallingSheet).Cells(iRow, 13).Value 'Fri
                             theHours(1) = Sheets(CallingSheet).Cells(iRow, 14).Value 'Sat
@@ -297,8 +317,13 @@ Sub IE_EnterLabor(CallingSheet)
                             theHours(5) = Sheets(CallingSheet).Cells(iRow, 18).Value 'Wed
                             theHours(6) = Sheets(CallingSheet).Cells(iRow, 19).Value 'Thu
                             theHours(7) = Sheets(CallingSheet).Cells(iRow, 20).Value 'Fri
-                            entriesMatch = IE_VerifyChargeObj_TEMPO(objIE, iEntries, Sheets(CallingSheet).Cells(iRow, 3).Value, _
-                                Sheets(CallingSheet).Cells(iRow, 5).Value, Sheets(CallingSheet).Cells(iRow, 6).Value, theHours)
+                            ' Added in Rev 3.21 - sending the WPM Field
+                            entriesMatch = IE_VerifyChargeObj_TEMPO(objIE, iEntries, _
+                                Left(Sheets(CallingSheet).Cells(iRow, 2).Value, 10), _
+                                Sheets(CallingSheet).Cells(iRow, 3).Value, _
+                                Sheets(CallingSheet).Cells(iRow, 5).Value, _
+                                Sheets(CallingSheet).Cells(iRow, 6).Value, _
+                                theHours)
                         ElseIf CallingSheet = Labor_Flex410_ShName Then                     ' Added TSHelper 3.20
                             'theHours(0) = Sheets(CallingSheet).Cells(iRow, 7).Value 'Fri  deprecated with Flex410
                             theHours(0) = Sheets(CallingSheet).Cells(iRow, 8).Value 'Mon
@@ -308,8 +333,13 @@ Sub IE_EnterLabor(CallingSheet)
                             theHours(4) = Sheets(CallingSheet).Cells(iRow, 12).Value 'Fri
                             theHours(5) = Sheets(CallingSheet).Cells(iRow, 13).Value 'Sat
                             theHours(6) = Sheets(CallingSheet).Cells(iRow, 14).Value 'Sun
-                            entriesMatch = IE_VerifyChargeObj_TEMPO(objIE, iEntries, Sheets(CallingSheet).Cells(iRow, 3).Value, _
-                                Sheets(CallingSheet).Cells(iRow, 5).Value, Sheets(CallingSheet).Cells(iRow, 6).Value, theHours)
+                            ' Added in Rev 3.21 - sending the WPM Field
+                            entriesMatch = IE_VerifyChargeObj_TEMPO(objIE, iEntries, _
+                                Left(Sheets(CallingSheet).Cells(iRow, 2).Value, 10), _
+                                Sheets(CallingSheet).Cells(iRow, 3).Value, _
+                                Sheets(CallingSheet).Cells(iRow, 5).Value, _
+                                Sheets(CallingSheet).Cells(iRow, 6).Value, _
+                                theHours)
                         End If
                         iEntries = iEntries + 1
                     End If
@@ -499,15 +529,29 @@ Sub IE_DeleteRows_TEMPO(objIE As Object, rowIndex As Integer)
     Loop Until (Not (StartOver))
     
 End Sub
-Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj As String, theExt As String, theShift As String, theHours() As String)
+Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM As String, theChargeObj As String, theExt As String, theShift As String, theHours() As String)
 ' Enters Charge Object theValue in row rowIndex
 '
+' Rev 3.21 - Update to include the WPM Field by looking at the TD cell#s
+' cell0 - Delete/Add Line
+' cell1 - Add Favorite
+' cell2 - ??
+' cell3 - Charge Object
+' cell4 - Ext
+' cell5 - WPM (may not be present on a line by line basis)
+' cell6-8 - ??
+' cell9 - Shift
+' cell10-16 - Monday - Sunday hours (Flex410)
+    
     Dim objElement As Object
     Dim evt As Object
     Dim i, j As Integer
     Dim state As Integer
     Dim result As Integer
     Dim StartOver As Boolean
+    Dim CellNum As Integer
+    
+    CellNum = -1
 
     Call Check_WD_Job(objIE)    'check for WD Job field (sets Found_WD_Job to "Y" or "N")
     If theShift = "" Then
@@ -520,6 +564,12 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj A
         'Debug.Print objIE.Document.Count
         For Each objElement In objIE.Document.all
             'Debug.Print objElement.tagName, objElement.ID
+            'Debug.Print "ID: ", objElement.ID, "Length: ", Len(objElement.ID), "InStr: ", InStr(objElement.ID, "cell")
+            If (InStr(objElement.ID, "cell") > 0) And _
+               (Len(objElement.ID) > 0) Then
+                CellNum = Right(objElement.ID, Len(objElement.ID) - InStr(objElement.ID, "cell") - 3)
+            End If
+            'Debug.Print objElement.tagName, objElement.ID, objElement.Title, "__Cell #", CellNum
             If state = 0 Then   'look for span with title "Delete Line" or "Add Line"
                 If (objElement.tagName = "SPAN") Then
                     If (objElement.Title = "Delete Line") Then
@@ -557,11 +607,7 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj A
                 If (objElement.tagName = "INPUT") Then
                     If (objElement.role = "textbox") Or _
                        (objElement.Type = "text") Then
-                        If Found_WD_Job = "Y" Then
-                            state = 3 'need to handle WD Job field next
-                        Else
-                            state = 4 'no WD Job field - skip it
-                        End If
+                        state = 3 ' Assume WPM Field is present
                         objElement.Focus
                         If Not (objElement.Value = UCase(theExt)) Then
                             objElement.Value = theExt
@@ -575,7 +621,10 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj A
                         End If
                     End If
                 End If
-            ElseIf state = 3 Then   'next input field is WD Job
+            ElseIf state = 3 Then   'next input field is WPM
+                If (CellNum = 9) Then  ' Skip if no WPM
+                    state = 4
+                End If
                 If (objElement.tagName = "INPUT") Then
                     If (objElement.role = "textbox") Or _
                        (objElement.Type = "text") Then
@@ -583,8 +632,8 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj A
                         objElement.Focus
                         ' We don't have a field for WD Job
                         '  set WD Job to blank, let user enter the correct code later if needed
-                        If Not (objElement.Value = "") Then
-                            objElement.Value = ""
+                        If Not (objElement.Value = UCase(theWPM)) Then
+                            objElement.Value = theWPM
                             'objElement.Click
                             Set evt = objIE.Document.createEvent("HTMLEvents")
                             'Set evt = objIE.Document.createEvent("keyboardevent")
@@ -647,15 +696,29 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj A
         IE_Finish
     End If
 End Sub
-Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theChargeObj As String, theExt As String, theShift As String, theHours() As String) As Boolean
+Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM As String, theChargeObj As String, theExt As String, theShift As String, theHours() As String) As Boolean
 ' Verifies the entries for the Charge Object theValue in row rowIndex
 '
+' Rev 3.21 - Update to include the WPM Field by looking at the TD cell#s
+' cell0 - Delete/Add Line
+' cell1 - Add Favorite
+' cell2 - ??
+' cell3 - Charge Object
+' cell4 - Ext
+' cell5 - WPM (may not be present on a line by line basis)
+' cell6-8 - ??
+' cell9 - Shift
+' cell10-16 - Monday - Sunday hours (Flex410)
+    
     Dim objElement As Object
     Dim evt As Object
     Dim i, j As Integer
     Dim state As Integer
     Dim result As Integer
     Dim matches As Boolean
+    Dim CellNum As Integer
+    
+    CellNum = -1
 
     Call Check_WD_Job(objIE)    'check for WD Job field (sets Found_WD_Job to "Y" or "N")
     If theShift = "" Then
@@ -667,6 +730,12 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theCharg
     'Debug.Print objIE.Document.Count
     For Each objElement In objIE.Document.all
         'Debug.Print objElement.tagName, objElement.ID
+        'Debug.Print "ID: ", objElement.ID, "Length: ", Len(objElement.ID), "InStr: ", InStr(objElement.ID, "cell")
+        If (InStr(objElement.ID, "cell") > 0) And _
+           (Len(objElement.ID) > 0) Then
+                CellNum = Right(objElement.ID, Len(objElement.ID) - InStr(objElement.ID, "cell") - 3)
+        End If
+       'Debug.Print objElement.tagName, objElement.ID, objElement.Title, "__Cell #", CellNum
         If state = 0 Then   'look for span with title "Delete Line" or "Add Line"
             If (objElement.tagName = "SPAN") Then
                 If (objElement.Title = "Delete Line") Then
@@ -694,25 +763,22 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theCharg
                 If (objElement.role = "textbox") Or _
                    (objElement.Type = "text") Then
                     'Debug.Print state, objElement.Value, UCase(theExt)
-                    If Found_WD_Job = "Y" Then
-                        state = 3 'need to handle WD Job field next
-                    Else
-                        state = 4 'no WD Job field - skip it
-                    End If
+                    state = 3 ' Assume WPM Field is present
                     If Not (objElement.Value = UCase(theExt)) Then
                         matches = False
                         Exit For
                     End If
                 End If
             End If
-        ElseIf state = 3 Then   'next input field is WD Job
+        ElseIf state = 3 Then   'next input field is WPM
+            If (CellNum = 9) Then  ' Skip if no WPM
+                state = 4
+            End If
             If (objElement.tagName = "INPUT") Then
                 If (objElement.role = "textbox") Or _
                    (objElement.Type = "text") Then
                     state = 4
-                    ' We don't have a field for WD Job
-                    '  set WD Job to blank, let user enter the correct code later if needed
-                    If Not (objElement.Value = "") Then
+                    If Not (objElement.Value = UCase(theWPM)) Then
                         matches = False
                         Exit For
                     End If

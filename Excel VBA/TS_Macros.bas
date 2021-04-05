@@ -7,6 +7,7 @@
 ' 3.02 - Brian Whipp
 ' 3.19 - Brian Whipp - Updated clean and import macros for new Configuration Field - WorkSchedule
 ' 3.20 - Brian Whipp - 3 January 2021 - Added hooks for Flex410 (but broke 980 [Timesheet Row R] - will fix later).
+' 3.21 - Brian Whipp - Added WPM capability, fixed bugs
 '
 ' ********************************************
 
@@ -634,6 +635,65 @@ Sub TS_ClearConfiguration()
     Range("A:Z").Font.Name = "Calibri"
     Range("A:Z").Font.Size = 11
 
+' Rev 3.21 - Add Conditional Formatting to help show empty cells in Import Setup
+    Range("ImportConfig").Select
+    Selection.FormatConditions.Add Type:=xlExpression, Formula1:="=ISBLANK(ImportConfig)"
+    Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
+    With Selection.FormatConditions(1).Interior
+        .PatternColorIndex = xlAutomatic
+        .ThemeColor = xlThemeColorDark1
+        .TintAndShade = -0.499984740745262
+    End With
+    Selection.FormatConditions(1).StopIfTrue = False
+    Selection.FormatConditions.Add Type:=xlExpression, Formula1:= _
+        "=NOT(ISBLANK(ImportConfig))"
+    Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
+    With Selection.FormatConditions(1).Interior
+        .PatternColorIndex = xlAutomatic
+        .Color = 5296274
+        .TintAndShade = 0
+    End With
+    Selection.FormatConditions(1).StopIfTrue = False
+    
+    Range("ImportWP").Select
+    Selection.FormatConditions.Add Type:=xlExpression, Formula1:="=ISBLANK(ImportWP)"
+    Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
+    With Selection.FormatConditions(1).Interior
+        .PatternColorIndex = xlAutomatic
+        .ThemeColor = xlThemeColorDark1
+        .TintAndShade = -0.499984740745262
+    End With
+    Selection.FormatConditions(1).StopIfTrue = False
+    Selection.FormatConditions.Add Type:=xlExpression, Formula1:= _
+        "=NOT(ISBLANK(ImportWP))"
+    Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
+    With Selection.FormatConditions(1).Interior
+        .PatternColorIndex = xlAutomatic
+        .Color = 5296274
+        .TintAndShade = 0
+    End With
+    Selection.FormatConditions(1).StopIfTrue = False
+    
+    Range("ImportTimesheet").Select
+    Selection.FormatConditions.Add Type:=xlExpression, Formula1:="=ISBLANK(ImportTimesheet)"
+    Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
+    With Selection.FormatConditions(1).Interior
+        .PatternColorIndex = xlAutomatic
+        .ThemeColor = xlThemeColorDark1
+        .TintAndShade = -0.499984740745262
+    End With
+    Selection.FormatConditions(1).StopIfTrue = False
+    Selection.FormatConditions.Add Type:=xlExpression, Formula1:= _
+        "=NOT(ISBLANK(ImportTimesheet))"
+    Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
+    With Selection.FormatConditions(1).Interior
+        .PatternColorIndex = xlAutomatic
+        .Color = 5296274
+        .TintAndShade = 0
+    End With
+    Selection.FormatConditions(1).StopIfTrue = False
+
+
 ' Reset Developer Mode
     Call TS_DeveloperMode
 
@@ -663,6 +723,7 @@ Sub TS_ClearSummary()
 End Sub
 
 Sub TS_ClearTimesheet()
+' Updated Ver 3.21 to hide the Off Friday column if Flex 410
 
 ' This can be used as a way to expand automatically, just need to make sure set up row is correct offsets
 
@@ -846,6 +907,15 @@ If Not tsMasterVisible Then
     Sheets("TSMasterFormulas").Visible = xlSheetHidden
 End If
     
+If (Range("WorkSchedule").Value = "Flex 4/10") Then
+   Sheets("Timesheet").Unprotect
+   Worksheets("Timesheet").Columns("F").Hidden = True
+   Sheets("Timesheet").Protect
+Else
+   Sheets("Timesheet").Unprotect
+   Worksheets("Timesheet").Columns("F").Hidden = False
+   Sheets("Timesheet").Protect
+End If
     
     Range("A2").Select                      ' Place cursor back at home
 
@@ -958,6 +1028,16 @@ Sub TS_ClearLabor_Flex410()
 
     Columns("G").Hidden = True
 
+' Rev 3.21
+    Range("BL10").FormulaArray = "=IFERROR(INDEX('WP #''s'!$C$2:$C$150,MATCH(TRUE,NOT(ISERROR(SEARCH('WP #''s'!$A$2:$A$150,LEFT(C10&REPT("" "",12-LEN(C10))&E10,LEN('WP #''s'!$A$2:$A$150))))),0)),"""")"
+    Range("BL10").Copy
+    Range("BL11:BL289").PasteSpecial (xlPasteFormulas)
+
+    Range("B10").Formula = "=IF(BL10=0,"""",BL10)"
+    Range("B10").Copy
+    Range("B11:B289").PasteSpecial (xlPasteFormulas)
+
+
 ' Rev 3.19
 ' Was: Range("N8").Formula = "=IF(N6="""",""X"","""")"   ' Fri Auto Select
 '    Range("N8").Formula = "=IF(OR(MOD(N5-DATE(2020,1,10),14)=IF(WorkSchedule=""Flex 9_80A"",0,7),N6=""""),""X"","""")"
@@ -966,159 +1046,180 @@ Sub TS_ClearLabor_Flex410()
     
 End Sub
 
+Sub TS_ResetLabor_Flex410_WPM()  ' Added Rev 3.21
+
+    Sheets("Labor_Flex410").Select
+
+' Rev 3.21
+    Sheets("Labor_Flex410").Unprotect
+    Range("B10:B289").NumberFormat = "General"
+    Range("B10").Formula = "=IF(BL10=0,"""",BL10)"
+    Range("B10").Copy
+    Range("B11:B289").PasteSpecial (xlPasteFormulas)
+    Application.CutCopyMode = False
+    Sheets("Labor_Flex410").Protect
+    Range("K2").Select                      ' Place cursor back at home
+        
+End Sub
+
+
 Sub TS_ClearWPs()
 ' Reset the Work Package Listings
+' Rev 3.21 - Inserted a new Column C for WPM
 
     Sheets("WP #'s").Select
     
 ' Set Intial Values
     Range("A2").Value = "-"             ' WP #
     Range("B2").Value = "NOTE"          ' Shortcut
-    Range("C2").Value = "Placeholder for a Note (No WP)"          ' Description
+    Range("D2").Value = "Placeholder for a Note (No WP)"          ' Description
   
     Range("A3").Value = "-"             ' WP #
     Range("B3").Value = "Break"          ' Shortcut
-    Range("C3").Value = "Placeholder for a Break (No WP)"          ' Description
+    Range("D3").Value = "Placeholder for a Break (No WP)"          ' Description
     
     Range("A4").Value = "-"             ' WP #
     Range("B4").Value = "Breakfast"          ' Shortcut
-    Range("C4").Value = "Placeholder for Breakfast (No WP)"          ' Description
+    Range("D4").Value = "Placeholder for Breakfast (No WP)"          ' Description
     
     Range("A5").Value = "-"             ' WP #
     Range("B5").Value = "Lunch"          ' Shortcut
-    Range("C5").Value = "Placeholder for Lunch (No WP)"          ' Description
+    Range("D5").Value = "Placeholder for Lunch (No WP)"          ' Description
     
     Range("A6").Value = "-"             ' WP #
     Range("B6").Value = "Dinner"          ' Shortcut
-    Range("C6").Value = "Placeholder for Dinner (No WP)"          ' Description
+    Range("D6").Value = "Placeholder for Dinner (No WP)"          ' Description
     
     Range("A7").Value = "PA"             ' WP #
     Range("B7").Value = "Vacation"          ' Shortcut
-    Range("C7").Value = "Vacation - Accrued Paid Time Off (PA)"          ' Description
+    Range("D7").Value = "Vacation - Accrued Paid Time Off (PA)"          ' Description
     
     Range("A8").Value = "PG"             ' WP #
     Range("B8").Value = "Sick"          ' Shortcut
-    Range("C8").Value = "Sick Time / Personal Business - Granted Paid Time Off (PG)"          ' Description
+    Range("D8").Value = "Sick Time / Personal Business - Granted Paid Time Off (PG)"          ' Description
     
     Range("A9").Value = "PS"             ' WP #
     Range("B9").Value = "Holiday"          ' Shortcut
-    Range("C9").Value = "Holiday - Fixed Paid Time Off (PS)"          ' Description
+    Range("D9").Value = "Holiday - Fixed Paid Time Off (PS)"          ' Description
     
     Range("A10").Value = "PF"             ' WP #
     Range("B10").Value = "Floating Holiday"          ' Shortcut
-    Range("C10").Value = "Floating Holiday - Floating Paid Time Off (PF)"          ' Description
+    Range("D10").Value = "Floating Holiday - Floating Paid Time Off (PF)"          ' Description
     
     
 ' 2018 Training Charge Numbers
     
     Range("A11").Value = "SC"             ' WP #
     Range("B11").Value = ""          ' Shortcut
-    Range("C11").Value = "Security Training"          ' Description
+    Range("D11").Value = "Security Training"          ' Description
     
     Range("A12").Value = "TC"             ' WP #
     Range("B12").Value = ""          ' Shortcut
-    Range("C12").Value = "Ethics & Business Compliance (Ex: BCCT)"          ' Description
+    Range("D12").Value = "Ethics & Business Compliance (Ex: BCCT)"          ' Description
     
     Range("A13").Value = "TR          REQ"             ' WP #
     Range("B13").Value = ""          ' Shortcut
-    Range("C13").Value = "Corporate or RMS Required Training (Ex: Import/Export, CAM)"          ' Description
+    Range("D13").Value = "Corporate or RMS Required Training (Ex: Import/Export, CAM)"          ' Description
     
     Range("A14").Value = "TR          MGT"             ' WP #
     Range("B14").Value = ""          ' Shortcut
-    Range("C14").Value = "Leadership Training (CLE,FSL)"          ' Description
+    Range("D14").Value = "Leadership Training (CLE,FSL)"          ' Description
 
     Range("A15").Value = "TR          FEL"             ' WP #
     Range("B15").Value = ""          ' Shortcut
-    Range("C15").Value = "LM Fellows Conference"          ' Description
+    Range("D15").Value = "LM Fellows Conference"          ' Description
     
     Range("A16").Value = "TR          EPD"             ' WP #
     Range("B16").Value = ""          ' Shortcut
-    Range("C16").Value = "New Development Enterprise Product Data Management"          ' Description
+    Range("D16").Value = "New Development Enterprise Product Data Management"          ' Description
     
     Range("A17").Value = "TR          EPM"             ' WP #
     Range("B17").Value = ""          ' Shortcut
-    Range("C17").Value = "Engineering Project Management Training"          ' Description
+    Range("D17").Value = "Engineering Project Management Training"          ' Description
 
     Range("A18").Value = "TR          TOP"             ' WP #
     Range("B18").Value = ""          ' Shortcut
-    Range("C18").Value = "Top Gun (IWSS, TLS, SAC-Helo, C4USS-TBD)"          ' Description
+    Range("D18").Value = "Top Gun (IWSS, TLS, SAC-Helo, C4USS-TBD)"          ' Description
 
     Range("A19").Value = "TR          CYB"             ' WP #
     Range("B19").Value = ""          ' Shortcut
-    Range("C19").Value = "Cyber Training"          ' Description
+    Range("D19").Value = "Cyber Training"          ' Description
 
     Range("A20").Value = "TR          DEV"             ' WP #
     Range("B20").Value = ""          ' Shortcut
-    Range("C20").Value = "Course Development"          ' Description
+    Range("D20").Value = "Course Development"          ' Description
 
     Range("A21").Value = "TR          NEO"             ' WP #
     Range("B21").Value = ""          ' Shortcut
-    Range("C21").Value = "New Employee Orientation"          ' Description
+    Range("D21").Value = "New Employee Orientation"          ' Description
 
     Range("A22").Value = "TR          CON"             ' WP #
     Range("B22").Value = ""          ' Shortcut
-    Range("C22").Value = "Conferences"          ' Description
+    Range("D22").Value = "Conferences"          ' Description
 
     Range("A23").Value = "TR          TRN"             ' WP #
     Range("B23").Value = ""          ' Shortcut
-    Range("C23").Value = "General Technical Training"          ' Description
+    Range("D23").Value = "General Technical Training"          ' Description
 
     Range("A24").Value = "TR          DDA"             ' WP #
     Range("B24").Value = ""          ' Shortcut
-    Range("C24").Value = "DDE - Agile"          ' Description
+    Range("D24").Value = "DDE - Agile"          ' Description
 
     Range("A25").Value = "TR          DDT"             ' WP #
     Range("B25").Value = ""          ' Shortcut
-    Range("C25").Value = "DDE - Automation"         ' Description
+    Range("D25").Value = "DDE - Automation"         ' Description
 
     Range("A26").Value = "TR          DDM"             ' WP #
     Range("B26").Value = ""          ' Shortcut
-    Range("C26").Value = "DDE - Model Based Engineering"         ' Description
+    Range("D26").Value = "DDE - Model Based Engineering"         ' Description
 
     Range("A27").Value = "TR          DDE"             ' WP #
     Range("B27").Value = ""          ' Shortcut
-    Range("C27").Value = "Digital Development Environment - DDE Other"         ' Description
+    Range("D27").Value = "Digital Development Environment - DDE Other"         ' Description
 
     Range("A28").Value = "TR          ADQ"             ' WP #
     Range("B28").Value = ""          ' Shortcut
-    Range("C28").Value = "Architect Development & Qualification Pgm"         ' Description
+    Range("D28").Value = "Architect Development & Qualification Pgm"         ' Description
 
     Range("A29").Value = "TR          SED"             ' WP #
     Range("B29").Value = ""          ' Shortcut
-    Range("C29").Value = "Systems Engineering Development & Qualification Pgm"         ' Description
+    Range("D29").Value = "Systems Engineering Development & Qualification Pgm"         ' Description
 
     Range("A30").Value = "TR          ESP"             ' WP #
     Range("B30").Value = ""          ' Shortcut
-    Range("C30").Value = "Embedded Systems Program"         ' Description
+    Range("D30").Value = "Embedded Systems Program"         ' Description
 
-    Range("A25").Value = "TR          COR"             ' WP #
-    Range("B25").Value = ""          ' Shortcut
-    Range("C25").Value = "Training Coordination/Administration"         ' Description
+    Range("A31").Value = "TR          COR"             ' WP #
+    Range("B31").Value = ""          ' Shortcut
+    Range("D31").Value = "Training Coordination/Administration"         ' Description
 
+    Range("C2:C31").Select
+    Selection.ClearContents
     
-    Range("B26:B150").Select
+    Range("B32:B150").Select
     Selection.ClearContents
    
-    Range("C26:G150").Select
+    Range("C32:H150").Select
     Selection.ClearContents
     
-    Range("A26:A150").Value = "_blank_"
+    Range("A32:A150").Value = "_blank_"
     
-    Range("I:I").EntireColumn.Hidden = True  ' Hide Columns
+    Range("J:L").EntireColumn.Hidden = True  ' Hide Columns
     
     Columns("A").ColumnWidth = 14.14 '104 pixels
     Columns("B").ColumnWidth = 14.14 '104 pixels
-    Columns("C").ColumnWidth = 76.14 '538 pixels
-    Columns("D").ColumnWidth = 17.57 '128 pixels
-    Columns("E").ColumnWidth = 8.57  '65 pixels
-    Columns("F").ColumnWidth = 10.14 '76 pixels
-    Columns("G").ColumnWidth = 24.86 '179 pixels
+    Columns("C").ColumnWidth = 9#    '68 pixels
+    Columns("D").ColumnWidth = 76.14 '538 pixels
+    Columns("E").ColumnWidth = 17.57 '128 pixels
+    Columns("F").ColumnWidth = 8.57  '65 pixels
+    Columns("G").ColumnWidth = 10.14 '76 pixels
+    Columns("H").ColumnWidth = 24.86 '179 pixels
     
-    Range("A1:G1").Font.Name = "Calibri"
-    Range("A1:G1").Font.Size = 13
+    Range("A1:H1").Font.Name = "Calibri"
+    Range("A1:H1").Font.Size = 13
     
-    Range("A2:G150").Font.Name = "Consolas"
-    Range("A2:G150").Font.Size = 8
+    Range("A2:H150").Font.Name = "Consolas"
+    Range("A2:H150").Font.Size = 8
     
     Range("A2").Select                  ' Put cursor back at home
 
@@ -1363,14 +1464,35 @@ End If
         ' ChangeHistory A49 = 2.08 or skip
         ' A2:G150 if B = Shortcut
         ' A2:A150, B2:F150 if B = Description
-          If v300 Then
+        ' Ver 3.21 - Inserted a Column for WPM
+        Workbooks(ThisBookName).Activate
+        Sheets("WP #'s").Select
+        Range("A2:H150").Select
+        Selection.ClearContents
+          If TSVer >= 3.21 Then
              Workbooks(DataBookName).Activate
              Sheets("WP #'s").Select
-             ActiveSheet.Range("A2:G150").Select
+             ActiveSheet.Range("A2:H150").Select
              Selection.Copy
              Workbooks(ThisBookName).Activate
              Sheets("WP #'s").Select
-             ActiveSheet.Range("A2:G150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+             ActiveSheet.Range("A2:H150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+          Else
+          If (TSVer >= 3) And (TSVer < 3.21) Then
+             Workbooks(DataBookName).Activate
+             Sheets("WP #'s").Select
+             ActiveSheet.Range("A2:B150").Select
+             Selection.Copy
+             Workbooks(ThisBookName).Activate
+             Sheets("WP #'s").Select
+             ActiveSheet.Range("A2:B150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+             Workbooks(DataBookName).Activate
+             Sheets("WP #'s").Select
+             ActiveSheet.Range("C2:G150").Select
+             Selection.Copy
+             Workbooks(ThisBookName).Activate
+             Sheets("WP #'s").Select
+             ActiveSheet.Range("D2:H150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
           Else
             If (v209 And Not v300) Then
                Workbooks(DataBookName).Activate
@@ -1387,7 +1509,7 @@ End If
                Selection.Copy
                Workbooks(ThisBookName).Activate
                Sheets("WP #'s").Select
-               ActiveSheet.Range("C2:G150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+               ActiveSheet.Range("D2:H150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
             Else
                 If v208 Then
                    Workbooks(DataBookName).Activate
@@ -1428,10 +1550,10 @@ End If
                    Selection.Copy
                    Workbooks(ThisBookName).Activate
                    Sheets("WP #'s").Select
-                   ActiveSheet.Range("C" & 2 + v208len & ":G150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+                   ActiveSheet.Range("D" & 2 + v208len & ":H150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
                 
                 End If
-            
+              End If
             End If
           End If
         
@@ -1449,13 +1571,15 @@ End If
              Workbooks(DataBookName).Activate
              Sheets("Timesheet").Select
         ' Ctrl + Shift + End
-             importBottomRow = ActiveSheet.Cells(ActiveSheet.Rows.Count, "O").End(xlUp).Row + 1
+'             importBottomRow = ActiveSheet.Cells(ActiveSheet.Rows.Count, "O").End(xlUp).Row + 1
+             importBottomRow = ActiveSheet.Cells(ActiveSheet.Rows.Count, "O").End(xlUp).Row
              
         ' Set up destination sheet length
              Workbooks(ThisBookName).Activate
              Sheets("Configuration").Select
 '             Range("E20").Value = importBottomRow - 1
-             Range("AdjustRows").Value = importBottomRow - 1
+'             Range("AdjustRows").Value = importBottomRow - 1
+             Range("AdjustRows").Value = importBottomRow
              Call TS_UpdateMaxRows
              
         ' Copy data
@@ -1504,6 +1628,9 @@ End If
         Worksheets(ThisSheetName).Activate 'And original worksheet
         result = MsgBox("Successfully imported data from file" & Chr(13) & _
                     """" & DataBookName & """.", vbInformation)
+        ' Added in ver 3.21
+        result = MsgBox("Please validate the correct Work Schedule is selected!" & Chr(13) & _
+                    "Ex. Flex 410, otherwise calculations and upload will not work.")
     
 ' Let's turn calculation on again
     Application.Calculation = xlCalculationAutomatic
@@ -1556,5 +1683,15 @@ Sub TS_ThisWeek_980_2wks()
     
 ' Reset Values
     Range("Q2").Value = "=TODAY()+MOD(8-WEEKDAY(TODAY()),7)"           ' Payroll Week Ending Date, Was =TODAY()
+
+End Sub
+
+Sub TS_ThisWeek_410()  ' Added TSHelper 3.21
+' Added a macro to reset the date formula to the default
+
+    Sheets("Labor_Flex410").Select
+
+' Reset Values
+    Range("K2").Value = "=TODAY()+MOD(8-WEEKDAY(TODAY()),7)"           ' Payroll Week Ending Date, Was =TODAY()
 
 End Sub
