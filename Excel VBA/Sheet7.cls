@@ -1,5 +1,6 @@
 Private Sub Worksheet_Change(ByVal Target As Range)
     ' Updated Ver 3.21 to also check for Work Schedule
+    ' Updated Ver 3.22 to fix drop down from column I to J
     
     Dim KeyCells As Range
     Dim KeyCells2 As Range
@@ -17,14 +18,14 @@ Private Sub Worksheet_Change(ByVal Target As Range)
         If (Range("WP_Dropdown").Value <> "") Then
              ActiveWorkbook.Names.Add _
                 Name:="WP_LIST_Unique_Alpha", _
-                RefersTo:="='WP #''s'!$I$2:INDEX('WP #''s'!$I$2:$I$" & Config_WP_lastrow & ",SUMPRODUCT(--('WP #''s'!$I$2:$I$" & Config_WP_lastrow & "<>"""")))"
+                RefersTo:="='WP #''s'!$J$2:INDEX('WP #''s'!$J$2:$J$" & Config_WP_lastrow & ",SUMPRODUCT(--('WP #''s'!$J$2:$J$" & Config_WP_lastrow & "<>"""")))"
             ' MsgBox "Something in the cell, changing to remove spaces"
         Else
         
            ' Set to default (empty cell) value
             ActiveWorkbook.Names.Add _
               Name:="WP_LIST_Unique_Alpha", _
-              RefersTo:="='WP #''s'!$I$2:$I$" & Config_WP_lastrow
+              RefersTo:="='WP #''s'!$J$2:$J$" & Config_WP_lastrow
 
         End If
         

@@ -8,6 +8,7 @@
 ' 3.19 - Brian Whipp - Updated clean and import macros for new Configuration Field - WorkSchedule
 ' 3.20 - Brian Whipp - 3 January 2021 - Added hooks for Flex410 (but broke 980 [Timesheet Row R] - will fix later).
 ' 3.21 - Brian Whipp - Added WPM capability, fixed bugs
+' 3.22 - Brian Whipp - Cleaned up 980 tabs, formatting
 '
 ' ********************************************
 
@@ -636,6 +637,9 @@ Sub TS_ClearConfiguration()
     Range("A:Z").Font.Size = 11
 
 ' Rev 3.21 - Add Conditional Formatting to help show empty cells in Import Setup
+
+    Range("ImportConfig").FormatConditions.Delete
+    
     Range("ImportConfig").Select
     Selection.FormatConditions.Add Type:=xlExpression, Formula1:="=ISBLANK(ImportConfig)"
     Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
@@ -655,6 +659,8 @@ Sub TS_ClearConfiguration()
     End With
     Selection.FormatConditions(1).StopIfTrue = False
     
+    Range("ImportWP").FormatConditions.Delete
+    
     Range("ImportWP").Select
     Selection.FormatConditions.Add Type:=xlExpression, Formula1:="=ISBLANK(ImportWP)"
     Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
@@ -673,6 +679,8 @@ Sub TS_ClearConfiguration()
         .TintAndShade = 0
     End With
     Selection.FormatConditions(1).StopIfTrue = False
+    
+    Range("ImportTimesheet").FormatConditions.Delete
     
     Range("ImportTimesheet").Select
     Selection.FormatConditions.Add Type:=xlExpression, Formula1:="=ISBLANK(ImportTimesheet)"
@@ -953,6 +961,16 @@ Sub TS_ClearLabor_Flex980()
 ' Was: Range("N8").Formula = "=IF(N6="""",""X"","""")"   ' Fri Auto Select
     Range("N8").Formula = "=IF(OR(MOD(N5-DATE(2020,1,10),14)=IF(WorkSchedule=""Flex 9_80A"",0,7),N6=""""),""X"","""")"
 
+' Rev 3.21
+    Range("BL10").FormulaArray = "=IFERROR(INDEX('WP #''s'!$C$2:$C$150,MATCH(TRUE,NOT(ISERROR(SEARCH('WP #''s'!$A$2:$A$150,LEFT(C10&REPT("" "",12-LEN(C10))&E10,LEN('WP #''s'!$A$2:$A$150))))),0)),"""")"
+    Range("BL10").Copy
+    Range("BL11:BL289").PasteSpecial (xlPasteFormulas)
+
+    Range("B10:B289").NumberFormat = "General"
+    Range("B10").Formula = "=IF(BL10=0,"""",BL10)"
+    Range("B10").Copy
+    Range("B11:B289").PasteSpecial (xlPasteFormulas)
+
     Range("K2").Select                      ' Place cursor back at home
     
 End Sub
@@ -991,6 +1009,17 @@ Sub TS_ClearLabor_Flex980_2weeks()
     Range("H8").Formula = "=IF(OR(MOD(H5-DATE(2020,1,10),14)=IF(WorkSchedule=""Flex 9_80A"",0,7),H6=""""),""X"","""")"
     Range("Y8").Formula = "=IF(OR(MOD(Y5-DATE(2020,1,10),14)=IF(WorkSchedule=""Flex 9_80A"",0,7),Y6=""""),""X"","""")"
     Range("AF8").Formula = "=IF(OR(MOD(AF5-DATE(2020,1,10),14)=IF(WorkSchedule=""Flex 9_80A"",0,7),AF6=""""),""X"","""")"
+    
+' Rev 3.21
+    Range("BL10").FormulaArray = "=IFERROR(INDEX('WP #''s'!$C$2:$C$150,MATCH(TRUE,NOT(ISERROR(SEARCH('WP #''s'!$A$2:$A$150,LEFT(C10&REPT("" "",12-LEN(C10))&E10,LEN('WP #''s'!$A$2:$A$150))))),0)),"""")"
+    Range("BL10").Copy
+    Range("BL11:BL289").PasteSpecial (xlPasteFormulas)
+
+    Range("B10:B289").NumberFormat = "General"
+    Range("B10").Formula = "=IF(BL10=0,"""",BL10)"
+    Range("B10").Copy
+    Range("B11:B289").PasteSpecial (xlPasteFormulas)
+  
     
     Range("Q2").Select                      ' Place cursor back at home
 
@@ -1033,6 +1062,7 @@ Sub TS_ClearLabor_Flex410()
     Range("BL10").Copy
     Range("BL11:BL289").PasteSpecial (xlPasteFormulas)
 
+    Range("B10:B289").NumberFormat = "General"
     Range("B10").Formula = "=IF(BL10=0,"""",BL10)"
     Range("B10").Copy
     Range("B11:B289").PasteSpecial (xlPasteFormulas)
@@ -1061,7 +1091,36 @@ Sub TS_ResetLabor_Flex410_WPM()  ' Added Rev 3.21
     Range("K2").Select                      ' Place cursor back at home
         
 End Sub
+Sub TS_ResetLabor_Flex980_WPM()  ' Added Rev 3.21
 
+    Sheets("Labor_Flex980").Select
+
+' Rev 3.21
+    Sheets("Labor_Flex980").Unprotect
+    Range("B10:B289").NumberFormat = "General"
+    Range("B10").Formula = "=IF(BL10=0,"""",BL10)"
+    Range("B10").Copy
+    Range("B11:B289").PasteSpecial (xlPasteFormulas)
+    Application.CutCopyMode = False
+    Sheets("Labor_Flex980").Protect
+    Range("K2").Select                      ' Place cursor back at home
+        
+End Sub
+Sub TS_ResetLabor_Flex980_2weeks_WPM()  ' Added Rev 3.21
+
+    Sheets("Labor_Flex980_2weeks").Select
+
+' Rev 3.21
+    Sheets("Labor_Flex980_2weeks").Unprotect
+    Range("B10:B289").NumberFormat = "General"
+    Range("B10").Formula = "=IF(BL10=0,"""",BL10)"
+    Range("B10").Copy
+    Range("B11:B289").PasteSpecial (xlPasteFormulas)
+    Application.CutCopyMode = False
+    Sheets("Labor_Flex980_2weeks").Protect
+    Range("K2").Select                      ' Place cursor back at home
+        
+End Sub
 
 Sub TS_ClearWPs()
 ' Reset the Work Package Listings
@@ -1202,7 +1261,7 @@ Sub TS_ClearWPs()
     Range("C32:H150").Select
     Selection.ClearContents
     
-    Range("A32:A150").Value = "_blank_"
+    Range("A32:A150").Value = "_blank______"
     
     Range("J:L").EntireColumn.Hidden = True  ' Hide Columns
     
@@ -1220,6 +1279,49 @@ Sub TS_ClearWPs()
     
     Range("A2:H150").Font.Name = "Consolas"
     Range("A2:H150").Font.Size = 8
+    
+' Rev 3.22 - Add Conditional Formatting to help show cells with spaces
+    Range("A2:A150").FormatConditions.Delete
+    
+    Range("A2").Select
+        
+' Conditional Format RED if length is incorrect (extra spaces?)
+    Selection.FormatConditions.Add Type:=xlExpression, Formula1:="=NOT(OR(LEN(A2)=2,LEN(A2)=12,LEN(A2)=15,A2=""-""))"
+    Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
+    With Selection.FormatConditions(1).Font
+        .Bold = True
+        .Italic = False
+        .ColorIndex = xlAutomatic
+        .TintAndShade = 0
+    End With
+    With Selection.FormatConditions(1).Interior
+        .PatternColorIndex = xlAutomatic
+        .Color = 255
+        .TintAndShade = 0
+    End With
+    Selection.FormatConditions(1).StopIfTrue = False
+
+' Conditional Format YELLOW if duplicate
+    Selection.FormatConditions.Add Type:=xlExpression, Formula1:="=IF(OR(A2=""_blank______"",A2=""-""),0,IF(COUNTIF($A$2:$A2,A2)>1,1,0))"
+    Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
+    With Selection.FormatConditions(1).Font
+        .Bold = True
+        .Italic = False
+        .ColorIndex = xlAutomatic
+        .TintAndShade = 0
+    End With
+    With Selection.FormatConditions(1).Interior
+        .PatternColorIndex = xlAutomatic
+        .Color = 65535
+        .TintAndShade = 0
+    End With
+    Selection.FormatConditions(1).StopIfTrue = False
+        
+    Range("A2").Select
+    Selection.Copy
+    With Sheets("WP #'s").Range("A3:A150")
+        .PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+    End With
     
     Range("A2").Select                  ' Put cursor back at home
 

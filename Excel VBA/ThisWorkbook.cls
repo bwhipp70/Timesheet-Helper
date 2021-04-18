@@ -2,6 +2,9 @@
 'Macro Warning Routines
 'WRH 2011-01-22
 '
+' Added Disable Cut and Paste and Drag and Drop
+' BMW, Ver 3.22
+'
 Option Explicit
 '
 'This is the name of the worksheet containing the macro warning information
@@ -84,8 +87,27 @@ Private Sub Workbook_SheetChange(ByVal Sh As Object, ByVal Target As Range)
     End If
 End Sub
 Private Sub Workbook_SheetSelectionChange(ByVal Sh As Object, ByVal Target As Range)
+'* Added disable cut and paste
+'* From https://www.mrexcel.com/board/threads/disable-cut-function.694926/
+'* Ver 3.22
     isClosing = False
+    
+' Can't disable Drag and Drop, will break CLean for Distribution
+'    Application.CellDragAndDrop = False
+    
+    Select Case Application.CutCopyMode
+        Case 2
+            MsgBox "The 'Cut & Paste' functionality is not available in this file." & vbCr & vbCr & _
+                "Please use the 'Copy & Paste' funtionality only and manually clear any data that require moving", vbExclamation, "Function Unavailable"
+            Application.CutCopyMode = False 'clear clipboard and cancel cut
+        Case Else
+    End Select
+
 End Sub
+Private Sub Workbook_Deactivate()
+     Application.CellDragAndDrop = True
+End Sub
+
 Private Sub Workbook_WindowActivate(ByVal Wn As Window)
     isClosing = False
 End Sub
