@@ -532,6 +532,21 @@ End Sub
 Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM As String, theChargeObj As String, theExt As String, theShift As String, theHours() As String)
 ' Enters Charge Object theValue in row rowIndex
 '
+
+' Rev 3.23 - TEMPO Cell# update on 6/22/2021
+' cell0 - Delete/Add Line
+' cell1 - Add Favorite
+' cell2 - ??
+' cell3 - Charge Object
+' cell4 - ??
+' cell5 - Ext
+' cell6 - ??
+' cell7 - WPM (may not be present on a line by line basis)
+' cell8-10 - ??
+' cell11 - Shift
+' cell12-13 - ??
+' cell14-20 - Monday - Sunday hours (Flex410)
+
 ' Rev 3.21 - Update to include the WPM Field by looking at the TD cell#s
 ' cell0 - Delete/Add Line
 ' cell1 - Add Favorite
@@ -569,7 +584,7 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM As Stri
                (Len(objElement.ID) > 0) Then
                 CellNum = Right(objElement.ID, Len(objElement.ID) - InStr(objElement.ID, "cell") - 3)
             End If
-            'Debug.Print objElement.tagName, objElement.ID, objElement.Title, "__Cell #", CellNum
+            Debug.Print objElement.tagName, objElement.ID, objElement.Title, "__Cell #", CellNum
             If state = 0 Then   'look for span with title "Delete Line" or "Add Line"
                 If (objElement.tagName = "SPAN") Then
                     If (objElement.Title = "Delete Line") Then
@@ -622,7 +637,7 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM As Stri
                     End If
                 End If
             ElseIf state = 3 Then   'next input field is WPM
-                If (CellNum = 9) Then  ' Skip if no WPM
+                If (CellNum = 11) Then  ' Skip if no WPM
                     state = 4
                 End If
                 If (objElement.tagName = "INPUT") Then
@@ -771,7 +786,7 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM A
                 End If
             End If
         ElseIf state = 3 Then   'next input field is WPM
-            If (CellNum = 9) Then  ' Skip if no WPM
+            If (CellNum = 11) Then  ' Skip if no WPM
                 state = 4
             End If
             If (objElement.tagName = "INPUT") Then
@@ -1042,6 +1057,8 @@ Function IE_GetWEDate_TEMPO(objIE As Object) As String
         End If
     Next
 
+    ' Added v3.23 to fix a TEMPO update that broke week compare
+    theStr = Format(theStr, "mm/dd/yyyy")
     IE_GetWEDate_TEMPO = theStr
 End Function
 Function IE_GetTimeEntry_TEMPO(objIE As Object) As String

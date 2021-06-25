@@ -1572,13 +1572,16 @@ End If
         Range("A2:H150").Select
         Selection.ClearContents
           If TSVer >= 3.21 Then
-             Workbooks(DataBookName).Activate
-             Sheets("WP #'s").Select
-             ActiveSheet.Range("A2:H150").Select
-             Selection.Copy
-             Workbooks(ThisBookName).Activate
-             Sheets("WP #'s").Select
-             ActiveSheet.Range("A2:H150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+'             Workbooks(DataBookName).Activate
+'             Sheets("WP #'s").Select
+'             ActiveSheet.Range("A2:H150").Select
+'             Selection.Copy
+'             Workbooks(ThisBookName).Activate
+'             Sheets("WP #'s").Select
+'             ActiveSheet.Range("A2:H150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+' Updated v3.23
+             Workbooks(DataBookName).Worksheets("WP #'s").Range("A2:H150").Copy
+             Workbooks(ThisBookName).Worksheets("WP #'s").Range("A2:H150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
           Else
           If (TSVer >= 3) And (TSVer < 3.21) Then
              Workbooks(DataBookName).Activate
@@ -1685,13 +1688,16 @@ End If
              Call TS_UpdateMaxRows
              
         ' Copy data
-             Workbooks(DataBookName).Activate
-             Sheets("Timesheet").Select
-             ActiveSheet.Range("A2:E" & importBottomRow).Select
-             Selection.Copy
-             Workbooks(ThisBookName).Activate
-             Sheets("Timesheet").Select
-             ActiveSheet.Range("A2:E" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+'             Workbooks(DataBookName).Activate
+'             Sheets("Timesheet").Select
+'             ActiveSheet.Range("A2:E" & importBottomRow).Select
+'             Selection.Copy
+'             Workbooks(ThisBookName).Activate
+'             Sheets("Timesheet").Select
+'             ActiveSheet.Range("A2:E" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+' Updated v3.23
+             Workbooks(DataBookName).Worksheets("Timesheet").Range("A2:E" & importBottomRow).Copy
+             Workbooks(ThisBookName).Worksheets("Timesheet").Range("A2:E" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
              
         ' If v.3.05 or earlier read from "G"; otherwise read from "F"
              
@@ -1706,17 +1712,25 @@ End If
              ActiveSheet.Range("F2:F" & importBottomRow).Select
              Selection.Copy
         End If
-             Workbooks(ThisBookName).Activate
-             Sheets("Timesheet").Select
-             ActiveSheet.Range("F2:F" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+'             Workbooks(ThisBookName).Activate
+'             Sheets("Timesheet").Select
+'             ActiveSheet.Range("F2:F" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+' Updated v3.23
+             Workbooks(ThisBookName).Worksheets("Timesheet").Range("F2:F" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
              
-             Workbooks(DataBookName).Activate
-             Sheets("Timesheet").Select
-             ActiveSheet.Range("L2:M" & importBottomRow).Select
-             Selection.Copy
-             Workbooks(ThisBookName).Activate
-             Sheets("Timesheet").Select
-             ActiveSheet.Range("L2:M" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+'             Workbooks(DataBookName).Activate
+'             Sheets("Timesheet").Select
+'             ActiveSheet.Range("L2:M" & importBottomRow).Select
+'             Selection.Copy
+'             Workbooks(ThisBookName).Activate
+'             Sheets("Timesheet").Select
+'             ActiveSheet.Range("L2:M" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+' Updated v3.23
+             Workbooks(DataBookName).Worksheets("Timesheet").Range("L2:M" & importBottomRow).Copy
+             Workbooks(ThisBookName).Worksheets("Timesheet").Range("L2:M" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+             
+             
+             
              
         Range("A2").Select                      ' Place cursor back at home
   
