@@ -150,7 +150,6 @@ Private Declare PtrSafe Function ShellExecute _
   Optional ByVal WindowStyle As Long = vbMinimizedFocus _
   ) As Long
 
-
 Sub TS_OpenTEMPO()
 
 ' Brings up TEMPO
@@ -542,10 +541,11 @@ Sub TS_CleanForDistribution()
     Call TS_ClearWPs
     Call TS_ClearLabor_Flex410            ' Added TSHelper 3.20
     
-    'Reset Hash Values
+    'Reset Hash Values and Uncheck Selenium Basic
     Test_UnlockProject
     ThisWorkbook.VBProject.VBE.MainWindow.Visible = False
     Call ShowAndFixAllHash
+    Call UnCheck_Selenium
     
     'Make sure sheets are protected
     Call TS_ProtectSheets
@@ -1908,4 +1908,4 @@ Sub CloseAndSave()
 End Sub
 
 'Code Module SHA-512
-'''99a7393e1f33b33a93babc538a74bced852647c2d165651813129e65942bc7f1e1984eeb9a8e3d3939e521f6de14d257a7916683c4990a38bdfea335bcd096de
+'''fd5b6ec8d15168742571ae4b2822c6392fd517076181e0a5e239130134ca462114ebc2596e2ed6084c51cc947e2df28e69a70c31321630a5622a1221de4a7c4f
