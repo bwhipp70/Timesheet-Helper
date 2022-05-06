@@ -103,5 +103,5 @@ Sub Set_Keyboard_States()
     End If
 End Sub
 
-
-
+'Code Module SHA-512
+'''9e622baf6a80e3fc60f18d3cfbc647dbcaac96593d46f7e8109afdd3735c1c45e0c1fd1f0a2414faae927bba7ea2d62af88c619134820f5c6de3c5bef9a39968

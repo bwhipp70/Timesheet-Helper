@@ -284,7 +284,7 @@ Function Get_Last_Labor_Row(WorkSchedule)
         Get_Last_Labor_Row = -1
     End If
 End Function
-Sub Import_GetValues_Old(theWorkbook, theSheet, colNumbers, theRow, lastRow, theValues)
+Sub Import_GetValues_Old(theWorkbook, theSheet, colNumbers, theRow, lastrow, theValues)
 'remember: colNumbers is an 8-element array of integer with column numbers for:
 ' 0:FRI, 1:SAT, 2:SUN, 3:MON, 4:TUE, 5:WED, 6:THU, 7:FRI(2nd Friday)
 'If there isn't a 2nd Friday, set the column number to -1
@@ -293,7 +293,7 @@ Sub Import_GetValues_Old(theWorkbook, theSheet, colNumbers, theRow, lastRow, the
 ' 4:FRI, 5:SAT, 6:SUN, 7:MON, 8:TUE, 9:WED, 10:THU, 11:FRI
 'if theRow > lastRow then return empty strings in theValues
 Dim i
-    If theRow <= lastRow Then
+    If theRow <= lastrow Then
         With Workbooks(theWorkbook).Sheets(theSheet)
             For i = 0 To 3
                 theValues(i) = .Cells(theRow, i + 2).Value
@@ -317,7 +317,7 @@ Dim i
         Next
     End If
 End Sub
-Sub Import_GetValues(theWorkbook, theSheet, colNumbers, theRow, lastRow, theValues)
+Sub Import_GetValues(theWorkbook, theSheet, colNumbers, theRow, lastrow, theValues)
 'remember: colNumbers is an 8-element array of integer with column numbers for:
 ' 0:FRI, 1:SAT, 2:SUN, 3:MON, 4:TUE, 5:WED, 6:THU, 7:FRI(2nd Friday)
 'If there isn't a 2nd Friday, set the column number to -1
@@ -326,7 +326,7 @@ Sub Import_GetValues(theWorkbook, theSheet, colNumbers, theRow, lastRow, theValu
 ' 4:FRI, 5:SAT, 6:SUN, 7:MON, 8:TUE, 9:WED, 10:THU, 11:FRI
 'if theRow > lastRow then return empty strings in theValues
 Dim i
-    If theRow <= lastRow Then
+    If theRow <= lastrow Then
         With Workbooks(theWorkbook).Sheets(theSheet)
             theValues(0) = .Cells(theRow, 2).Value
             theValues(1) = .Cells(theRow, 3).Value
@@ -351,14 +351,14 @@ Dim i
         Next
     End If
 End Sub
-Sub Copy_GetValues(WorkSchedule, theRow, lastRow, theValues)
+Sub Copy_GetValues(WorkSchedule, theRow, lastrow, theValues)
 'remember: theValues is a 12-element array of variant
 ' 0:Memo, 1:CHRG # OR CODE/Charge Object, 2:DEPT CHGD/Ext, 3:JOB CODE/Shift
 ' 4:FRI, 5:SAT, 6:SUN, 7:MON, 8:TUE, 9:WED, 10:THU, 11:FRI
 'if theRow > lastRow then return empty strings in theValues
 Dim theSheet
 Dim i
-    If theRow <= lastRow Then
+    If theRow <= lastrow Then
         theSheet = Get_Work_Schedule_SheetName(WorkSchedule)
         If WorkSchedule = WorkSchedule_Flex980 Then
             For i = 0 To 1
@@ -1014,7 +1014,7 @@ Private Sub Import_Close_Workbook()
 '
     If DataBookName <> "" Then
         Workbooks(DataBookName).Worksheets(1).Range("A1").Copy 'Copy a single cell to empty large buffer
-        Workbooks(DataBookName).Close SaveChanges:=False
+        Workbooks(DataBookName).Close savechanges:=False
     End If
 End Sub
 Sub Copy_From_Other_Work_Schedule()
@@ -1141,3 +1141,5 @@ Sub CleanForDistribution()
     Range("A2").Select 'then put the selection on row 2
 End Sub
 
+'Code Module SHA-512
+'''e42ceeece9ed14e67479cde9e3482b5e35a72a05126f733da556bd1e78d6e1bf380f9c470fad7917673f05c918c973d42f8104efba444e90069d53fbb990df75

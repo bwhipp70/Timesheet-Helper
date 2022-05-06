@@ -9,6 +9,7 @@
 ' 3.20 - Brian Whipp - 3 January 2021 - Added hooks for Flex410 (but broke 980 [Timesheet Row R] - will fix later).
 ' 3.21 - Brian Whipp - Added WPM capability, fixed bugs
 ' 3.22 - Brian Whipp - Cleaned up 980 tabs, formatting
+' 4.00 - Added Educational Mode
 '
 ' ********************************************
 
@@ -126,7 +127,7 @@
 
 ' Variables used to resize the Timesheet
 Public TS_MaxRows As Long
-Public lastRow As Long
+Public lastrow As Long
 Public BottomRow As Long
 Public Const TS_MaxDefaultRows = 2000
 Public Resize As Boolean
@@ -141,7 +142,7 @@ Private Const DevMode = "Dev_Mode"
 
 Private Declare PtrSafe Function ShellExecute _
   Lib "shell32.dll" Alias "ShellExecuteA" ( _
-  ByVal hwnd As Long, _
+  ByVal hWnd As Long, _
   ByVal Operation As String, _
   ByVal Filename As String, _
   Optional ByVal Parameters As String, _
@@ -168,42 +169,42 @@ Sub TS_UpdateMaxRows()
 
 ' Find current maximum number used
 
-Resize = True
+    Resize = True
 
 'Turn off automatic calculation
 
-Application.Calculation = xlCalculationManual
+    Application.Calculation = xlCalculationManual
 
-Call TS_CalcMaxRows         ' Determine the last used row and last formula row
-Call TS_UpdateMaxNames      ' Set up the names to the new last row in the Name Manager
-Call TS_ClearTimesheet      ' Adjust Timesheet
+    Call TS_CalcMaxRows         ' Determine the last used row and last formula row
+    Call TS_UpdateMaxNames      ' Set up the names to the new last row in the Name Manager
+    Call TS_ClearTimesheet      ' Adjust Timesheet
 
-Application.Calculation = xlCalculationAutomatic
+    Application.Calculation = xlCalculationAutomatic
 
 End Sub
 
 Sub TS_CalcMaxRows()
 
-Dim sht As Worksheet
+    Dim sht As Worksheet
 
-Set sht = ThisWorkbook.Worksheets("Timesheet")
+    Set sht = ThisWorkbook.Worksheets("Timesheet")
 
 ' User field, find desired length
 ' TS_MaxRows = Sheets("Configuration").Range("E20").Value
-TS_MaxRows = Sheets("Configuration").Range("AdjustRows").Value
+    TS_MaxRows = Sheets("Configuration").Range("AdjustRows").Value
 
 'Ctrl + Shift + End to find last used rows
-  lastRow = sht.Cells(sht.Rows.Count, "C").End(xlUp).Row + 1        ' Last user row
-  BottomRow = sht.Cells(sht.Rows.Count, "O").End(xlUp).Row + 1      ' Last Forumla row
+    lastrow = sht.Cells(sht.Rows.Count, "C").End(xlUp).Row + 1        ' Last user row
+    BottomRow = sht.Cells(sht.Rows.Count, "O").End(xlUp).Row + 1      ' Last Forumla row
 
 ' If the user requested length would remove entires, set to max entries + 2 to provide buffer
 ' Don't let them remove entries
 
-If TS_MaxRows < lastRow Then
+    If TS_MaxRows < lastrow Then
 '    Sheets("Configuration").Range("E20").Value = lastRow + 2
-    Sheets("Configuration").Range("AdjustRows").Value = lastRow + 2
-    TS_MaxRows = lastRow + 2
-End If
+        Sheets("Configuration").Range("AdjustRows").Value = lastrow + 2
+        TS_MaxRows = lastrow + 2
+    End If
 
 End Sub
 
@@ -328,48 +329,83 @@ Sub TS_UpdateMaxNames()
 
 
 End Sub
-
 Sub TS_DeveloperMode()
 ' Toggle Developer Mode
 ' Hide/Unhide Sheets that are normally hidden
 ' Unprotect all Sheets
 ' Update States
 
-If Range(DevMode) = "Off" Then
-    Call TS_DevMode_On
-  Else
-    Call TS_DevMode_Off
-End If
+    If Range(DevMode) = "Off" Then
+        Call TS_DevMode_On
+    Else
+        Call TS_DevMode_Off
+    End If
 
 End Sub
-
 Sub TS_DevMode_On()
 ' Turn on Developer Mode
 
-Call TS_UnprotectSheets
+    Call TS_UnprotectSheets
 
 ' Set the flag for the user
-Sheets("Configuration").Select
+    Sheets("Configuration").Select
 ' Range("A20").Value = "On"
-Range("Dev_Mode").Value = "On"
+    Range("Dev_Mode").Value = "On"
 
-Call TS_UnhideSheets
-Sheets("Configuration").Activate
+    Call TS_UnhideSheets
+    Sheets("Configuration").Activate
 
 End Sub
 Sub TS_DevMode_Off()
 ' Turn on Developer Mode
 
 ' Set the flag for the user
-Sheets("Configuration").Select
+    Sheets("Configuration").Select
 'Range("A20").Value = "Off"
-Range("Dev_Mode").Value = "Off"
+    Range("Dev_Mode").Value = "Off"
 
-Call TS_ProtectSheets
-Call TS_HideSheets
+    Call TS_ProtectSheets
+    Call TS_HideSheets
 
 End Sub
+Sub TS_EducationalMode()
+' Toggle Educational Mode
+' Hide/Unhide Educational Mode Sheet that is normally hidden
 
+    If Range("Educational_Mode") = "Off" Then
+        Call TS_EducationalMode_On
+    Else
+        Call TS_EducationalMode_Off
+    End If
+
+End Sub
+Sub TS_EducationalMode_On()
+' Turn on Educational Mode
+
+' Set the flag for the user
+    Sheets("Configuration").Select
+' Range("A20").Value = "On"
+    Range("Educational_Mode").Value = "On"
+
+    Sheets("Educational Mode").Visible = True
+    Sheets("Configuration").Activate
+
+    MsgBox "Welcome to Educational Mode!" & vbCrLf & _
+            "Please refer to the Educational Mode Tab for instructions."
+
+End Sub
+Sub TS_EducationalMode_Off()
+' Turn on Developer Mode
+
+' Set the flag for the user
+    Sheets("Configuration").Select
+'Range("A20").Value = "Off"
+    Range("Educational_Mode").Value = "Off"
+
+    Sheets("Educational Mode").Visible = xlSheetHidden
+    Sheets("Configuration").Activate
+
+End Sub
 Sub TS_ProtectSheets()
 'Make sure sheets are protected
     
@@ -390,6 +426,9 @@ Sub TS_ProtectSheets()
     Sheets("_ReadMe").Protect
 ' 3.20 Addition
     Sheets("Labor_Flex410").Protect
+' 4.00 Addition
+    Sheets("Educational Mode").Protect
+    Sheets("VBA Trust Warning").Protect
 
 ' Don't touch the Macro Warning sheet
 ' Otherwise, William's macros will break
@@ -418,6 +457,9 @@ Sub TS_UnprotectSheets()
     Sheets("_ReadMe").Unprotect
 ' 3.20 Addition
     Sheets("Labor_Flex410").Unprotect
+' 4.00 Addition
+    Sheets("Educational Mode").Unprotect
+    Sheets("VBA Trust Warning").Unprotect
 
 ' Don't touch the Macro Warning sheet
 ' Otherwise, William's macros will break
@@ -434,6 +476,9 @@ Sub TS_HideSheets()
     Sheets("ExecutionTimes").Visible = xlSheetHidden
     Sheets("TSMasterFormulas").Visible = xlSheetHidden
     Call Update_Work_Schedule_Selection     ' This will hide either the Labor_Flex980 or Labor_Flex980_2weeks sheet
+' 4.00 Addition
+    Sheets("Educational Mode").Visible = xlSheetHidden
+    Sheets("VBA Trust Warning").Visible = xlSheetHidden
 
 End Sub
 
@@ -450,10 +495,22 @@ Sub TS_UnhideSheets()
 
 ' 3.20 Addition
     Sheets("Labor_Flex410").Visible = True
+' 4.00 Addition
+    Sheets("Educational Mode").Visible = True
+    Sheets("VBA Trust Warning").Visible = True
 
+' 4.00 Addition (2) - Unhide ALL Sheets (even those that shouldn't be hidden)
+    Sheets("_ReadMe").Visible = True
+    Sheets("Directions").Visible = True
+    Sheets("Configuration").Visible = True
+    Sheets("Summary").Visible = True
+    Sheets("Timesheet").Visible = True
+    Sheets("WP #'s").Visible = True
+    Sheets("WP Lookup").Visible = True
+    Sheets("Change History").Visible = True
+    Sheets("LM Command Media").Visible = True
 
 End Sub
-
 
 Sub TS_CleanForDistribution()
 ' Clears data to prepare workbook for distribution to others
@@ -461,8 +518,9 @@ Sub TS_CleanForDistribution()
 
     Resize = False
 
-    'Make sure sheets are unprotected
+    'Make sure sheets are unprotected and visible
     Call TS_UnprotectSheets
+    Call TS_UnhideSheets
     
     Application.Calculation = xlCalculationManual
 
@@ -475,6 +533,7 @@ Sub TS_CleanForDistribution()
     Call TS_UnhideSheets
     
     Call TS_ClearInstructions
+    Call TS_ClearEducationalMode
     
     Call TS_ClearSummary
     Call TS_ClearTimesheet
@@ -482,6 +541,11 @@ Sub TS_CleanForDistribution()
     Call TS_ClearLabor_Flex980_2weeks
     Call TS_ClearWPs
     Call TS_ClearLabor_Flex410            ' Added TSHelper 3.20
+    
+    'Reset Hash Values
+    Test_UnlockProject
+    ThisWorkbook.VBProject.VBE.MainWindow.Visible = False
+    Call ShowAndFixAllHash
     
     'Make sure sheets are protected
     Call TS_ProtectSheets
@@ -510,7 +574,14 @@ Sub TS_ClearDirections()
     Range("A1").Select
 
 End Sub
+Sub TS_ClearEducationalMode()
 
+    Sheets("Educational Mode").Select
+
+' Return to Corner
+    Range("A1").Select
+
+End Sub
 Sub TS_ClearInstructions()
 
     Sheets("Instructions").Select
@@ -554,6 +625,28 @@ Sub TS_ClearConfiguration()
 ' Clear/Reset the few values
 
     Sheets("Configuration").Select
+    
+' Rev 4.00
+    ActiveWorkbook.Names.Add _
+      Name:="BrowserDriver", _
+      RefersTo:="=Configuration!$M$8"
+    
+    Range("BrowserDriver").Select
+    With Selection.Validation
+        .Delete
+        .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:= _
+        xlBetween, Formula1:="=Dropdown_Entries!$A$13:$A$18"
+        .IgnoreBlank = True
+        .InCellDropdown = True
+        .InputTitle = ""
+        .ErrorTitle = ""
+        .InputMessage = ""
+        .ErrorMessage = ""
+        .ShowInput = True
+        .ShowError = True
+    End With
+
+    Range("BrowserDriver").Value = "Edge (SeleniumBasic)" ' Select Edge as Default
     
 ' Rev 3.19
     ActiveWorkbook.Names.Add _
@@ -630,7 +723,7 @@ Sub TS_ClearConfiguration()
     Columns("G").ColumnWidth = 14.57 '107 pixels
     Columns("I").ColumnWidth = 14.57 '107 pixels
     Columns("K").ColumnWidth = 14.57 '107 pixels
-    Columns("M").ColumnWidth = 14.57 '107 pixels, Rev 3.19
+    Columns("M").ColumnWidth = 23.75 '170 pixels, Rev 4.00
     Columns("Z").ColumnWidth = 8.43 '64 pixels
     
     Range("A:Z").Font.Name = "Calibri"
@@ -701,6 +794,9 @@ Sub TS_ClearConfiguration()
     End With
     Selection.FormatConditions(1).StopIfTrue = False
 
+' 4.00 Addition
+    Range("Educational_Mode").Value = "Off"
+    Sheets("Educational Mode").Visible = xlSheetHidden
 
 ' Reset Developer Mode
     Call TS_DeveloperMode
@@ -736,42 +832,42 @@ Sub TS_ClearTimesheet()
 ' This can be used as a way to expand automatically, just need to make sure set up row is correct offsets
 
 ' Clear all but first (header) row
-Dim tempRange As String
-Dim startRow As Double
-Dim startRow2 As Double    ' The row before
-Dim tsProtected As Boolean
-Dim tsMasterVisible As Boolean
+    Dim tempRange As String
+    Dim startRow As Double
+    Dim startRow2 As Double    ' The row before
+    Dim tsProtected As Boolean
+    Dim tsMasterVisible As Boolean
 
-tsProtected = Sheets("Timesheet").ProtectContents
+    tsProtected = Sheets("Timesheet").ProtectContents
 
-If tsProtected Then
-    Sheets("Timesheet").Unprotect
-End If
+    If tsProtected Then
+        Sheets("Timesheet").Unprotect
+    End If
 
-tsMasterVisible = Sheets("TSMasterFormulas").Visible
+    tsMasterVisible = Sheets("TSMasterFormulas").Visible
 
-If Not tsMasterVisible Then
-    Sheets("TSMasterFormulas").Visible = True
-End If
+    If Not tsMasterVisible Then
+        Sheets("TSMasterFormulas").Visible = True
+    End If
 
 
-If Not Resize Then
-    Call TS_CalcMaxRows
-    Call TS_UpdateMaxNames
-End If
+    If Not Resize Then
+        Call TS_CalcMaxRows
+        Call TS_UpdateMaxNames
+    End If
 
-Sheets("Timesheet").Select
+    Sheets("Timesheet").Select
 
-If Resize Then
+    If Resize Then
     ' Start from LastRow to BottomRow
-    tempRange = "A" & lastRow & ":AR" & BottomRow
-    Range(tempRange).Select
-Else
+        tempRange = "A" & lastrow & ":AR" & BottomRow
+        Range(tempRange).Select
+    Else
     ' Clear from row 2 to BottomRow
-    Range("A2:AR" & BottomRow).Select
-End If
+        Range("A2:AR" & BottomRow).Select
+    End If
 
-Selection.ClearContents
+    Selection.ClearContents
 
 ' Copy Master Formulas from TSMasterFormulas sheet
 ' Then Fill down
@@ -781,111 +877,101 @@ Selection.ClearContents
 ' Need to break it up into two sections
 
 ' If Clean for Distribution, start at the very top
-If Not Resize Then
-    lastRow = 2
-End If
+    If Not Resize Then
+        lastrow = 2
+    End If
     
+' Fixed in v3.24
+    Worksheets("TSMasterFormulas").Range("A2:N3").Copy
+    Worksheets("Timesheet").Range("A" & lastrow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+    Worksheets("Timesheet").Range("A" & lastrow).PasteSpecial xlPasteFormats
 
-Sheets("TSMasterFormulas").Select
-
-Range("A2:N3").Select
-Selection.Copy
-
-Sheets("Timesheet").Select
-
+'Sheets("TSMasterFormulas").Select
+'Range("A2:N3").Select
+'Selection.Copy
+'Sheets("Timesheet").Select
 ' Set up "first" row
 ' Will need to do all cells in the row
-    
-With Sheets("Timesheet").Range("A" & lastRow)
-    .PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
-    .PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
-End With
+'With Sheets("Timesheet").Range("A" & lastRow)
+'    .PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+'    .PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+'End With
 
-Sheets("TSMasterFormulas").Select
+    Worksheets("TSMasterFormulas").Range("O2:AR3").Copy
+    Worksheets("Timesheet").Range("O" & lastrow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+    Worksheets("Timesheet").Range("O" & lastrow).PasteSpecial xlPasteFormats
 
-Range("O2:AR3").Select
-Selection.Copy
-
-Sheets("Timesheet").Select
-
+'Sheets("TSMasterFormulas").Select
+'Range("O2:AR3").Select
+'Selection.Copy
+'Sheets("Timesheet").Select
 ' Set up "first" row
 ' Will need to do all cells in the row
-    
-With Sheets("Timesheet").Range("O" & lastRow)
-    .PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
-    .PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
-End With
+'With Sheets("Timesheet").Range("O" & lastRow)
+'    .PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+'    .PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+'End With
 
 
-If TS_MaxRows < 3 Then
-    TS_MaxRows = 3
-End If
+    If TS_MaxRows < 3 Then
+        TS_MaxRows = 3
+    End If
 
-If TS_MaxRows < lastRow Then
-    TS_MaxRows = lastRow
-End If
+    If TS_MaxRows < lastrow Then
+        TS_MaxRows = lastrow
+    End If
 
-If Resize Then
+    If Resize Then
     ' Start from LastRow to BottomRow
-    tempRange = "A" & lastRow & ":AR" & TS_MaxRows
-    Worksheets("Timesheet").Range(tempRange).FillDown
-Else
-    Worksheets("Timesheet").Range("A3:AR" & TS_MaxDefaultRows).FillDown
-End If
+        tempRange = "A" & lastrow & ":AR" & TS_MaxRows
+        Worksheets("Timesheet").Range(tempRange).FillDown
+    Else
+        Worksheets("Timesheet").Range("A3:AR" & TS_MaxDefaultRows).FillDown
+    End If
 
-Sheets("Timesheet").Select
-Range("A1048576:AR1048576").Select
-Selection.Copy
+    Sheets("Timesheet").Select
+    Range("A1048576:AR1048576").Select
+    Selection.Copy
 
-If Resize Then
-    With Sheets("Timesheet").Range("A" & TS_MaxRows + 1)
-        .PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
-    End With
-    tempRange = "A" & TS_MaxRows + 1 & ":AR20000"
-    Worksheets("Timesheet").Range(tempRange).FillDown
-
-Else
-    With Sheets("Timesheet").Range("A" & TS_MaxDefaultRows + 1)
-        .PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
-    End With
-    tempRange = "A" & TS_MaxDefaultRows + 1 & ":AR20000"
-    Worksheets("Timesheet").Range(tempRange).FillDown
-End If
+    If Resize Then
+        With Sheets("Timesheet").Range("A" & TS_MaxRows + 1)
+            .PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+        End With
+        tempRange = "A" & TS_MaxRows + 1 & ":AR20000"
+        Worksheets("Timesheet").Range(tempRange).FillDown
+    Else
+        With Sheets("Timesheet").Range("A" & TS_MaxDefaultRows + 1)
+            .PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+        End With
+        tempRange = "A" & TS_MaxDefaultRows + 1 & ":AR20000"
+        Worksheets("Timesheet").Range(tempRange).FillDown
+    End If
 
 ' Set up Blocker / Reminder Rows
 
-Range("G2").Select
-Selection.Copy
+    Range("G2").Select
+    Selection.Copy
    
-If Resize Then
-   
-    tempRange = "A" & TS_MaxRows + 1 & ":M" & TS_MaxRows + 3
-   
-    With Sheets("Timesheet").Range(tempRange)
-       .PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
-    End With
-
-    Range("D" & TS_MaxRows + 2).Value = "*** STOP - Use the Adjust Rows to Add More Lines"
-
-Else
-    tempRange = "A" & TS_MaxDefaultRows + 1 & ":M" & TS_MaxDefaultRows + 3
-   
-    With Sheets("Timesheet").Range(tempRange)
-       .PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
-    End With
-
-    Range("D" & TS_MaxDefaultRows + 2).Value = "*** STOP - Use the Adjust Rows to Add More Lines"
-    
-End If
+    If Resize Then
+        tempRange = "A" & TS_MaxRows + 1 & ":M" & TS_MaxRows + 3
+        With Sheets("Timesheet").Range(tempRange)
+            .PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+        End With
+        Range("D" & TS_MaxRows + 2).Value = "*** STOP - Use the Adjust Rows to Add More Lines"
+    Else
+        tempRange = "A" & TS_MaxDefaultRows + 1 & ":M" & TS_MaxDefaultRows + 3
+        With Sheets("Timesheet").Range(tempRange)
+        .PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+        End With
+        Range("D" & TS_MaxDefaultRows + 2).Value = "*** STOP - Use the Adjust Rows to Add More Lines"
+    End If
 
 ' 3.17 fix to clear cell Timesheet.A2:B2 ONLY if not containing user data.
     
-If Range("A2") = "" Then
-
-    Range("A2:B2").Select
-    Selection.ClearContents
-
-End If
+    If Range("A2") = "" Then
+        Range("A2:B2").Select
+        Selection.ClearContents
+    End If
     
     Range("O:AR").EntireColumn.Hidden = True  ' Hide Columns
     
@@ -907,23 +993,23 @@ End If
     Range("A:AR").Font.Size = 8
 
 'If Timesheet was originally protected, reprotect
-If tsProtected Then
-    Sheets("Timesheet").Protect
-End If
+    If tsProtected Then
+        Sheets("Timesheet").Protect
+    End If
 
-If Not tsMasterVisible Then
-    Sheets("TSMasterFormulas").Visible = xlSheetHidden
-End If
+    If Not tsMasterVisible Then
+        Sheets("TSMasterFormulas").Visible = xlSheetHidden
+    End If
     
-If (Range("WorkSchedule").Value = "Flex 4/10") Then
-   Sheets("Timesheet").Unprotect
-   Worksheets("Timesheet").Columns("F").Hidden = True
-   Sheets("Timesheet").Protect
-Else
-   Sheets("Timesheet").Unprotect
-   Worksheets("Timesheet").Columns("F").Hidden = False
-   Sheets("Timesheet").Protect
-End If
+    If (Range("WorkSchedule").Value = "Flex 4/10") Then
+        Sheets("Timesheet").Unprotect
+        Worksheets("Timesheet").Columns("F").Hidden = True
+        Sheets("Timesheet").Protect
+    Else
+        Sheets("Timesheet").Unprotect
+        Worksheets("Timesheet").Columns("F").Hidden = False
+        Sheets("Timesheet").Protect
+    End If
     
     Range("A2").Select                      ' Place cursor back at home
 
@@ -1326,68 +1412,67 @@ Sub TS_ClearWPs()
     Range("A2").Select                  ' Put cursor back at home
 
 End Sub
-
 Sub TS_ImportData()
 
 ' Import selected data
 ' Stolen heavily from William Hall's code
 
-Dim fileToOpen
-Dim theError
-Dim configSh As Boolean
-Dim wpSh As Boolean
-Dim timesheetSh As Boolean
-Dim v208 As Boolean
-Dim v209 As Boolean
-Dim v300 As Boolean
-Dim TSVer As Double
-Dim sht As Worksheet
-Dim SheetExists As Boolean
-Dim theValues(0 To 11) As Variant
-Dim i
-Dim importBottomRow As Long
-Dim testString As String
-Dim tsProtected As Boolean
-Dim v208len As Long
-
-' Grab sheet protection state to restore it later.
-' Must unprotect the sheet to make changes.
-tsProtected = Sheets("Timesheet").ProtectContents
-
-If tsProtected Then
-    Sheets("Timesheet").Unprotect
-End If
-
-' Set variables to determine which version to import
-v208 = False
-v209 = False
-v300 = False
-TSVer = 0
-
-' Dummy string to validate if workbook to import is correct
-testString = ""
-
-' Determine which sheets to import
-configSh = False
-wpSh = False
-timesheetSh = False
-
-Sheets("Configuration").Select
-
-'If (Range("H19").Value <> "") Then
-If (Range("ImportConfig").Value <> "") Then
-    configSh = True
-End If
-
-'If (Range("H20").Value <> "") Then
-If (Range("ImportWP").Value <> "") Then
-    wpSh = True
-End If
-
-'If (Range("H21").Value <> "") Then
-If (Range("ImportTimesheet").Value <> "") Then
-    timesheetSh = True
-End If
+    Dim fileToOpen
+    Dim theError
+    Dim configSh As Boolean
+    Dim wpSh As Boolean
+    Dim timesheetSh As Boolean
+    Dim v208 As Boolean
+    Dim v209 As Boolean
+    Dim v300 As Boolean
+    Dim TSVer As Double
+    Dim sht As Worksheet
+    Dim SheetExists As Boolean
+    Dim theValues(0 To 11) As Variant
+    Dim i
+    Dim importBottomRow As Long
+    Dim testString As String
+    Dim tsProtected As Boolean
+    Dim v208len As Long
+    
+    ' Grab sheet protection state to restore it later.
+    ' Must unprotect the sheet to make changes.
+    tsProtected = Sheets("Timesheet").ProtectContents
+    
+    If tsProtected Then
+        Sheets("Timesheet").Unprotect
+    End If
+    
+    ' Set variables to determine which version to import
+    v208 = False
+    v209 = False
+    v300 = False
+    TSVer = 0
+    
+    ' Dummy string to validate if workbook to import is correct
+    testString = ""
+    
+    ' Determine which sheets to import
+    configSh = False
+    wpSh = False
+    timesheetSh = False
+    
+    Sheets("Configuration").Select
+    
+    'If (Range("H19").Value <> "") Then
+    If (Range("ImportConfig").Value <> "") Then
+        configSh = True
+    End If
+    
+    'If (Range("H20").Value <> "") Then
+    If (Range("ImportWP").Value <> "") Then
+        wpSh = True
+    End If
+    
+    'If (Range("H21").Value <> "") Then
+    If (Range("ImportTimesheet").Value <> "") Then
+        timesheetSh = True
+    End If
 
     'Import configuration and labor from a previous version of Timesheet
     
@@ -1401,9 +1486,9 @@ End If
     If fileToOpen <> False Then
         'Error trap in case error occurs during open
         On Error Resume Next
-        Workbooks.Open Filename:=fileToOpen, ReadOnly:=True 'Load the workbook file
-        theError = Err.Number 'check for error: 1004 occurs if file is open already in Excel with unsaved changes
-        'now turn off error trapping
+            Workbooks.Open Filename:=fileToOpen, ReadOnly:=True 'Load the workbook file
+            theError = Err.Number 'check for error: 1004 occurs if file is open already in Excel with unsaved changes
+            'now turn off error trapping
         On Error GoTo 0
         If theError = 0 Then
             DataBookName = ActiveWorkbook.Name      'Keep track of new workbook name
@@ -1420,8 +1505,8 @@ End If
         ' If not, trap the error and gracefully inform the user
         
         On Error Resume Next
-        Workbooks(DataBookName).Activate
-        testString = Worksheets("Change History").Range("A1")
+            Workbooks(DataBookName).Activate
+            testString = Worksheets("Change History").Range("A1")
         On Error GoTo 0
         If testString = "Rev History" Then
             SheetExists = True      ' Sheet Exists, so probably a good import candidate
@@ -1476,7 +1561,7 @@ End If
 '        MsgBox "SheetExists = " & SheetExists & "; V208/209/300 = " & v208 & ";" & v209 & ";" & v300
 '        MsgBox "TSVer = " & TSVer
         
-'       Needs to be V2.08 or newer to import.
+'        Needs to be V2.08 or newer to import.
 
         If (Not v208) And (Not v209) And (Not v300) And (Not (TSVer > 3)) Then
             Call TS_Import_Close_Workbook
@@ -1493,36 +1578,41 @@ End If
 ' Disable calculation to speed things up
 ' Wanted to do this after validity check so as to not accidentally leave it off
 
-    Application.Calculation = xlCalculationManual
+        Application.Calculation = xlCalculationManual
         
 ' Import the Configuration Tab values
         If configSh Then
         ' A2, C2, E2, G2, I2, K2 always copy
         ' A20, E20 only if V3.00 or greater
         
-           Workbooks(DataBookName).Activate
-           Sheets("Configuration").Select
-           theValues(0) = Sheets("Configuration").Range("A2").Value
-           theValues(1) = Sheets("Configuration").Range("C2").Value
-           theValues(2) = Sheets("Configuration").Range("E2").Value
-           theValues(3) = Sheets("Configuration").Range("G2").Value
-           theValues(4) = Sheets("Configuration").Range("I2").Value
-           theValues(5) = Sheets("Configuration").Range("K2").Value
+            Workbooks(DataBookName).Activate
+            Sheets("Configuration").Select
+            theValues(0) = Sheets("Configuration").Range("A2").Value
+            theValues(1) = Sheets("Configuration").Range("C2").Value
+            theValues(2) = Sheets("Configuration").Range("E2").Value
+            theValues(3) = Sheets("Configuration").Range("G2").Value
+            theValues(4) = Sheets("Configuration").Range("I2").Value
+            theValues(5) = Sheets("Configuration").Range("K2").Value
          
-           If v300 Then
-             theValues(6) = Sheets("Configuration").Range("A20").Value
-             theValues(7) = Sheets("Configuration").Range("E20").Value
-           End If
+            If v300 Then
+                theValues(6) = Sheets("Configuration").Range("A20").Value
+                theValues(7) = Sheets("Configuration").Range("E20").Value
+            End If
          
 ' Moved some items around in 3.02
            If TSVer >= 3.02 Then
-             theValues(6) = Sheets("Configuration").Range("A11").Value
-             theValues(7) = Sheets("Configuration").Range("E11").Value
+                theValues(6) = Sheets("Configuration").Range("A11").Value
+                theValues(7) = Sheets("Configuration").Range("E11").Value
            End If
          
 ' Added Work Schedule in version 3.19
            If TSVer >= 3.19 Then
-             theValues(8) = Sheets("Configuration").Range("M2").Value
+                theValues(8) = Sheets("Configuration").Range("M2").Value
+           End If
+
+' Added Browser Driver in version 4.00
+           If TSVer >= 4# Then
+                theValues(9) = Sheets("Configuration").Range("M8").Value
            End If
 
          
@@ -1534,8 +1624,8 @@ End If
 '           Sheets("Configuration").Range("G2").Value = theValues(3)
 '           Sheets("Configuration").Range("I2").Value = theValues(4)
 '           Sheets("Configuration").Range("K2").Value = theValues(5)
-           ' Removed in 3.20
-           ' Sheets("Configuration").Range("EndoftheWeekDay").Value = theValues(0)
+'           Removed in 3.20
+'           Sheets("Configuration").Range("EndoftheWeekDay").Value = theValues(0)
            Sheets("Configuration").Range("WS_Year").Value = theValues(1)
            Sheets("Configuration").Range("VacationAccrued").Value = theValues(2)
            Sheets("Configuration").Range("VacationStart").Value = theValues(3)
@@ -1545,126 +1635,125 @@ End If
            If v300 Then
 '             Sheets("Configuration").Range("A20").Value = theValues(6)
 '             Sheets("Configuration").Range("E20").Value = theValues(7)
-             Sheets("Configuration").Range("Dev_Mode").Value = theValues(6)
-             Sheets("Configuration").Range("AdjustRows").Value = theValues(7)
+                Sheets("Configuration").Range("Dev_Mode").Value = theValues(6)
+                Sheets("Configuration").Range("AdjustRows").Value = theValues(7)
            End If
      
 ' Added in version 3.19
            If TSVer >= 3.19 Then
-             Sheets("Configuration").Range("WorkSchedule").Value = theValues(8)
+                Sheets("Configuration").Range("WorkSchedule").Value = theValues(8)
+           End If
+     
+' Added in version 4.00
+           If TSVer >= 4# Then
+                Sheets("Configuration").Range("BrowserDriver").Value = theValues(9)
            End If
      
 ' Return to Worksheet Year
     
            Range("C2").Select
      
-        End If
+        End If      'configSh
         
 ' Import the WP #'s Tab values
 
         If wpSh Then
-        ' ChangeHistory A49 = 2.08 or skip
-        ' A2:G150 if B = Shortcut
-        ' A2:A150, B2:F150 if B = Description
-        ' Ver 3.21 - Inserted a Column for WPM
-        Workbooks(ThisBookName).Activate
-        Sheets("WP #'s").Select
-        Range("A2:H150").Select
-        Selection.ClearContents
-          If TSVer >= 3.21 Then
-'             Workbooks(DataBookName).Activate
-'             Sheets("WP #'s").Select
-'             ActiveSheet.Range("A2:H150").Select
-'             Selection.Copy
-'             Workbooks(ThisBookName).Activate
-'             Sheets("WP #'s").Select
-'             ActiveSheet.Range("A2:H150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+'       ChangeHistory A49 = 2.08 or skip
+'       A2:G150 if B = Shortcut
+'       A2:A150, B2:F150 if B = Description
+'       Ver 3.21 - Inserted a Column for WPM
+            Workbooks(ThisBookName).Activate
+            Sheets("WP #'s").Select
+            Range("A2:H150").Select
+            Selection.ClearContents
+            If TSVer >= 3.21 Then
+'               Workbooks(DataBookName).Activate
+'               Sheets("WP #'s").Select
+'               ActiveSheet.Range("A2:H150").Select
+'               Selection.Copy
+'               Workbooks(ThisBookName).Activate
+'               Sheets("WP #'s").Select
+'               ActiveSheet.Range("A2:H150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
 ' Updated v3.23
-             Workbooks(DataBookName).Worksheets("WP #'s").Range("A2:H150").Copy
-             Workbooks(ThisBookName).Worksheets("WP #'s").Range("A2:H150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
-          Else
-          If (TSVer >= 3) And (TSVer < 3.21) Then
-             Workbooks(DataBookName).Activate
-             Sheets("WP #'s").Select
-             ActiveSheet.Range("A2:B150").Select
-             Selection.Copy
-             Workbooks(ThisBookName).Activate
-             Sheets("WP #'s").Select
-             ActiveSheet.Range("A2:B150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
-             Workbooks(DataBookName).Activate
-             Sheets("WP #'s").Select
-             ActiveSheet.Range("C2:G150").Select
-             Selection.Copy
-             Workbooks(ThisBookName).Activate
-             Sheets("WP #'s").Select
-             ActiveSheet.Range("D2:H150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
-          Else
-            If (v209 And Not v300) Then
-               Workbooks(DataBookName).Activate
-               Sheets("WP #'s").Select
-               ActiveSheet.Range("A2:A150").Select
-               Selection.Copy
-               Workbooks(ThisBookName).Activate
-               Sheets("WP #'s").Select
-               ActiveSheet.Range("A2:A150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
-            
-               Workbooks(DataBookName).Activate
-               Sheets("WP #'s").Select
-               ActiveSheet.Range("B2:F150").Select
-               Selection.Copy
-               Workbooks(ThisBookName).Activate
-               Sheets("WP #'s").Select
-               ActiveSheet.Range("D2:H150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+                Workbooks(DataBookName).Worksheets("WP #'s").Range("A2:H150").Copy
+                Workbooks(ThisBookName).Worksheets("WP #'s").Range("A2:H150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
             Else
-                If v208 Then
-                   Workbooks(DataBookName).Activate
-                   Sheets("Configuration").Select
+                If (TSVer >= 3) And (TSVer < 3.21) Then
+                    Workbooks(DataBookName).Activate
+                    Sheets("WP #'s").Select
+                    ActiveSheet.Range("A2:B150").Select
+                    Selection.Copy
+                    Workbooks(ThisBookName).Activate
+                    Sheets("WP #'s").Select
+                    ActiveSheet.Range("A2:B150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+                    Workbooks(DataBookName).Activate
+                    Sheets("WP #'s").Select
+                    ActiveSheet.Range("C2:G150").Select
+                    Selection.Copy
+                    Workbooks(ThisBookName).Activate
+                    Sheets("WP #'s").Select
+                    ActiveSheet.Range("D2:H150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+                Else
+                    If (v209 And Not v300) Then
+                        Workbooks(DataBookName).Activate
+                        Sheets("WP #'s").Select
+                        ActiveSheet.Range("A2:A150").Select
+                        Selection.Copy
+                        Workbooks(ThisBookName).Activate
+                        Sheets("WP #'s").Select
+                        ActiveSheet.Range("A2:A150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+                        Workbooks(DataBookName).Activate
+                        Sheets("WP #'s").Select
+                        ActiveSheet.Range("B2:F150").Select
+                        Selection.Copy
+                        Workbooks(ThisBookName).Activate
+                        Sheets("WP #'s").Select
+                        ActiveSheet.Range("D2:H150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+                    Else
+                        If v208 Then
+                            Workbooks(DataBookName).Activate
+                            Sheets("Configuration").Select
                    
-                   ' Unprotect the v208 sheet
-                   ActiveSheet.Unprotect "56o$sdfH"
+                        ' Unprotect the v208 sheet
+                            ActiveSheet.Unprotect "56o$sdfH"
                    
-                   ' Figure out how many lines are used in the shortcut
-                   v208len = Range("N2:N20").Cells.SpecialCells(xlCellTypeConstants).Count
-                   ' Copy only the used rows
-                   ActiveSheet.Range("N2:N" & 2 + v208len - 1).Select
-                   Selection.Copy
-                   Workbooks(ThisBookName).Activate
-                   Sheets("WP #'s").Select
-                   ActiveSheet.Range("A2:A" & 2 + v208len - 1).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
-                   
-                   Workbooks(DataBookName).Activate
-                   Sheets("Configuration").Select
-                   ActiveSheet.Range("M2:M" & 2 + v208len - 1).Select
-                   Selection.Copy
-                   Workbooks(ThisBookName).Activate
-                   Sheets("WP #'s").Select
-                   ActiveSheet.Range("B2:B" & 2 + v208len - 1).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
-                
-                   ' Copy all WPs up to the maximum number of free rows
-                   Workbooks(DataBookName).Activate
-                   Sheets("WP #'s").Select
-                   ActiveSheet.Range("A2:A" & 150 - v208len).Select
-                   Selection.Copy
-                   Workbooks(ThisBookName).Activate
-                   Sheets("WP #'s").Select
-                   ActiveSheet.Range("A" & 2 + v208len & ":A150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
-            
-                   Workbooks(DataBookName).Activate
-                   Sheets("WP #'s").Select
-                   ActiveSheet.Range("B2:F" & 150 - v208len).Select
-                   Selection.Copy
-                   Workbooks(ThisBookName).Activate
-                   Sheets("WP #'s").Select
-                   ActiveSheet.Range("D" & 2 + v208len & ":H150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
-                
-                End If
-              End If
-            End If
-          End If
+                        ' Figure out how many lines are used in the shortcut
+                            v208len = Range("N2:N20").Cells.SpecialCells(xlCellTypeConstants).Count
+                        ' Copy only the used rows
+                            ActiveSheet.Range("N2:N" & 2 + v208len - 1).Select
+                            Selection.Copy
+                            Workbooks(ThisBookName).Activate
+                            Sheets("WP #'s").Select
+                            ActiveSheet.Range("A2:A" & 2 + v208len - 1).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+                            Workbooks(DataBookName).Activate
+                            Sheets("Configuration").Select
+                            ActiveSheet.Range("M2:M" & 2 + v208len - 1).Select
+                            Selection.Copy
+                            Workbooks(ThisBookName).Activate
+                            Sheets("WP #'s").Select
+                            ActiveSheet.Range("B2:B" & 2 + v208len - 1).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+                        ' Copy all WPs up to the maximum number of free rows
+                            Workbooks(DataBookName).Activate
+                            Sheets("WP #'s").Select
+                            ActiveSheet.Range("A2:A" & 150 - v208len).Select
+                            Selection.Copy
+                            Workbooks(ThisBookName).Activate
+                            Sheets("WP #'s").Select
+                            ActiveSheet.Range("A" & 2 + v208len & ":A150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+                            Workbooks(DataBookName).Activate
+                            Sheets("WP #'s").Select
+                            ActiveSheet.Range("B2:F" & 150 - v208len).Select
+                            Selection.Copy
+                            Workbooks(ThisBookName).Activate
+                            Sheets("WP #'s").Select
+                            ActiveSheet.Range("D" & 2 + v208len & ":H150").PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+                        End If  'v208
+                    End If      'v209 and not v300
+                End If          '>=3 <3.21
+            End If              '>=3.21
         
         Range("A2").Select                  ' Put cursor back at home
-        
-        End If
+        End If                  'wpSh
         
 ' Import the Timesheet entries
 
@@ -1673,19 +1762,19 @@ End If
         ' v3.05 and before, Move Columns A-E, G, L-M
         ' v3.06 and after, Move Columns A-F, L-M
         ' Determine number of total rows and used rows in source sheet
-             Workbooks(DataBookName).Activate
-             Sheets("Timesheet").Select
+            Workbooks(DataBookName).Activate
+            Sheets("Timesheet").Select
         ' Ctrl + Shift + End
 '             importBottomRow = ActiveSheet.Cells(ActiveSheet.Rows.Count, "O").End(xlUp).Row + 1
-             importBottomRow = ActiveSheet.Cells(ActiveSheet.Rows.Count, "O").End(xlUp).Row
+            importBottomRow = ActiveSheet.Cells(ActiveSheet.Rows.Count, "O").End(xlUp).Row
              
         ' Set up destination sheet length
-             Workbooks(ThisBookName).Activate
-             Sheets("Configuration").Select
+            Workbooks(ThisBookName).Activate
+            Sheets("Configuration").Select
 '             Range("E20").Value = importBottomRow - 1
 '             Range("AdjustRows").Value = importBottomRow - 1
-             Range("AdjustRows").Value = importBottomRow
-             Call TS_UpdateMaxRows
+            Range("AdjustRows").Value = importBottomRow
+            Call TS_UpdateMaxRows
              
         ' Copy data
 '             Workbooks(DataBookName).Activate
@@ -1696,27 +1785,27 @@ End If
 '             Sheets("Timesheet").Select
 '             ActiveSheet.Range("A2:E" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
 ' Updated v3.23
-             Workbooks(DataBookName).Worksheets("Timesheet").Range("A2:E" & importBottomRow).Copy
-             Workbooks(ThisBookName).Worksheets("Timesheet").Range("A2:E" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+            Workbooks(DataBookName).Worksheets("Timesheet").Range("A2:E" & importBottomRow).Copy
+            Workbooks(ThisBookName).Worksheets("Timesheet").Range("A2:E" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
              
         ' If v.3.05 or earlier read from "G"; otherwise read from "F"
              
-        If TSVer < 3.06 Then
-             Workbooks(DataBookName).Activate
-             Sheets("Timesheet").Select
-             ActiveSheet.Range("G2:G" & importBottomRow).Select
-             Selection.Copy
-        Else
-             Workbooks(DataBookName).Activate
-             Sheets("Timesheet").Select
-             ActiveSheet.Range("F2:F" & importBottomRow).Select
-             Selection.Copy
-        End If
+            If TSVer < 3.06 Then
+                Workbooks(DataBookName).Activate
+                Sheets("Timesheet").Select
+                ActiveSheet.Range("G2:G" & importBottomRow).Select
+                Selection.Copy
+            Else
+                Workbooks(DataBookName).Activate
+                Sheets("Timesheet").Select
+                ActiveSheet.Range("F2:F" & importBottomRow).Select
+                Selection.Copy
+            End If
 '             Workbooks(ThisBookName).Activate
 '             Sheets("Timesheet").Select
 '             ActiveSheet.Range("F2:F" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
 ' Updated v3.23
-             Workbooks(ThisBookName).Worksheets("Timesheet").Range("F2:F" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+            Workbooks(ThisBookName).Worksheets("Timesheet").Range("F2:F" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
              
 '             Workbooks(DataBookName).Activate
 '             Sheets("Timesheet").Select
@@ -1726,15 +1815,13 @@ End If
 '             Sheets("Timesheet").Select
 '             ActiveSheet.Range("L2:M" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
 ' Updated v3.23
-             Workbooks(DataBookName).Worksheets("Timesheet").Range("L2:M" & importBottomRow).Copy
-             Workbooks(ThisBookName).Worksheets("Timesheet").Range("L2:M" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
-             
-             
-             
-             
-        Range("A2").Select                      ' Place cursor back at home
+            Workbooks(DataBookName).Worksheets("Timesheet").Range("L2:M" & importBottomRow).Copy
+            Workbooks(ThisBookName).Worksheets("Timesheet").Range("L2:M" & importBottomRow).PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+            
+            Workbooks(ThisBookName).Activate        ' Select the destination workbook
+            Range("A2").Select                      ' Place cursor back at home
   
-        End If
+        End If      'timesheetSh
         
         ' Close the Source Workbook
         TS_Import_Close_Workbook
@@ -1749,25 +1836,22 @@ End If
                     "Ex. Flex 410, otherwise calculations and upload will not work.")
     
 ' Let's turn calculation on again
-    Application.Calculation = xlCalculationAutomatic
- 
-    
+        Application.Calculation = xlCalculationAutomatic
+   
 'If Timesheet was originally protected, reprotect
-If tsProtected Then
-    Sheets("Timesheet").Protect
-End If
-  
+        If tsProtected Then
+            Sheets("Timesheet").Protect
+        End If
     
-    End If
+    End If      'fileToOpen <> False
 End Sub
-
 Private Sub TS_Import_Close_Workbook()
 '
 ' Closes the data workbook
 '
     If DataBookName <> "" Then
         Workbooks(DataBookName).Worksheets(1).Range("A1").Copy 'Copy a single cell to empty large buffer
-        Workbooks(DataBookName).Close SaveChanges:=False
+        Workbooks(DataBookName).Close savechanges:=False
     End If
 End Sub
 
@@ -1779,7 +1863,7 @@ Function CCTrim(ChargeCode)
 ' TRIM will remove multiple internal spaces, corrupting AD          MET
 ' CLEAN will not remove trailing spaces
 
-CCTrim = RTrim(ChargeCode)
+    CCTrim = RTrim(ChargeCode)
 
 End Function
 
@@ -1811,3 +1895,17 @@ Sub TS_ThisWeek_410()  ' Added TSHelper 3.21
     Range("K2").Value = "=TODAY()+MOD(8-WEEKDAY(TODAY()),7)"           ' Payroll Week Ending Date, Was =TODAY()
 
 End Sub
+Sub CloseAndSave()
+' Save, Close, and Repoen the Workbook
+'   https://stackoverflow.com/questions/22379546/save-close-and-re-open-thisworkbook
+'   https://docs.microsoft.com/en-us/office/vba/language/reference/user-interface-help/shell-function
+
+    Dim pth As String
+    pth = ThisWorkbook.FullName
+    Shell "CMD /C PING 10.0.0.0 -n 1 -w 500 >NUL & Excel " & Chr(34) & ThisWorkbook.FullName & Chr(34), vbHide
+    ActiveWorkbook.Close savechanges:=True
+
+End Sub
+
+'Code Module SHA-512
+'''99a7393e1f33b33a93babc538a74bced852647c2d165651813129e65942bc7f1e1984eeb9a8e3d3939e521f6de14d257a7916683c4990a38bdfea335bcd096de

@@ -38,7 +38,7 @@ Set ct = u.Resize(1)
 Set ro = routput
 
 For Each c In ct.Columns
- Set ro = ro.Offset(1)
+ Set ro = ro.offset(1)
  Set rt = c.Resize(u.Rows.Count)
  rt.Select
  ro.Cells(1, 1).Value = rt.Worksheet.Name & "!" & rt.Address
@@ -79,7 +79,7 @@ End If
 
 If ro.Row > rAll.Row Then
 Set rAll = rAll.Resize(ro.Row - rAll.Row + 1, 2)
-Set rKey = rAll.Offset(1, 1).Resize(rAll.Rows.Count - 1, 1)
+Set rKey = rAll.offset(1, 1).Resize(rAll.Rows.Count - 1, 1)
 ' sort highest to lowest execution time
 With rAll.Worksheet.Sort
  .SortFields.Clear
@@ -100,8 +100,8 @@ Set rSum = rAll.Cells(1, 3)
  rSum.Formula = "=sum(" & rKey.Address & ")"
 ' %ages formulas
 For Each r In rKey.Cells
- r.Offset(, 1).Formula = "=" & r.Address & "/" & rSum.Address
- r.Offset(, 1).NumberFormat = "0.00%"
+ r.offset(, 1).Formula = "=" & r.Address & "/" & rSum.Address
+ r.offset(, 1).NumberFormat = "0.00%"
  Next r
 
  End If
@@ -354,3 +354,5 @@ Errhandl:
     GoTo Finish
 End Sub
 
+'Code Module SHA-512
+'''d499f44b22586336bf7f5cbb3c47c6cc028b9b737e06a78afcf85dc9c4ef9cc181dabdb9639ba5ef0ebbe97ab72b2697ff8632a93da4deeecf12715b67b3e37b

@@ -111,3 +111,5 @@ Function GetComment()
     If Not cmtFound Then GetComment = ""
 End Function
 
+'Code Module SHA-512
+'''d616b56b268ea28440dc16af0964028301f0f2692fb7a9c103828c25d98c90842f0e8acf3697731017b4412e0a02213c364a8f17918da40c0bd048c9d861d0f7

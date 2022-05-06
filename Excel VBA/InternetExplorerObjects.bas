@@ -11,30 +11,27 @@ Option Explicit
 '  the “Microsoft Internet Controls” reference. Click the checkbox to the
 '  left of it, and then click OK.
 '
-' URLs for TEMPO
-'
-Public URL_TEMPO As String
-Public Suffix_Shell_Home As String
-Public Suffix_Time_Entry As String
-Public URL_LoggedOff As String
-
-Public Const Default_URL_TEMPO = "https://tempo.external.lmco.com/fiori" 'Updated 3.18
-Public Const Default_Suffix_Shell_Home = "#Shell-home"
-Public Const Default_Suffix_Time_Entry = "#ZTPOTIMESHEET3-record" 'Updated 3.18
-Public Const Default_URL_LoggedOff = "https://tempo.external.lmco.com/sap/public/bc/icf/logoff" 'Updated 3.18
 '
 ' Keep track of whether TEMPO time entry sheet has "WD Job" field
 '  default is empty string (need to check), "Y" if yes, and "N" if no
 '
+' Drop-down entry for Internet Explorer (VBA)
+'
+Public Const IE_BrowserDriver = "Internet Explorer (VBA)"
+'
+' Keep track of whether TEMPO time entry sheet has "WD Job" field and "TVL" field
+'  default is empty string (need to check), "Y" if yes, and "N" if no
+'
 Dim Found_WD_Job As String
+Dim Found_TVL As String
 '
 'WinAPI functions
 #If Win64 Then
 Private Declare PtrSafe Function BringWindowToTop Lib "user32" (ByVal _
- hwnd As LongPtr) As Long
+ hWnd As LongPtr) As Long
  
 Private Declare PtrSafe Function GetWindowText Lib "user32" Alias "GetWindowTextA" (ByVal _
- hwnd As LongPtr, ByVal lpString As String, ByVal cch As Long) As Long
+ hWnd As LongPtr, ByVal lpString As String, ByVal cch As Long) As Long
 #Else
 Private Declare Function BringWindowToTop Lib "user32" (ByVal _
  hwnd As Long) As Long
@@ -64,6 +61,13 @@ Sub IE_EnterLabor(CallingSheet)
     Dim entriesMatch As Boolean
     Dim loopCount As Integer
     Const loopLimit As Integer = 3
+
+' 4.0 - IE11 is broken, tell the user
+
+    result = MsgBox("IE11 with ExcelVBA is broken.  Please select one of the SeleniumBasic Browsers on the Configuration Tab.", vbExclamation)
+    Sheets("Configuration").Select
+    Range("BrowserDriver").Select
+    IE_Finish
 
     Call IE_GetUserValues(CallingSheet)
     
@@ -503,7 +507,7 @@ Sub IE_DeleteRows_TEMPO(objIE As Object, rowIndex As Integer)
         'Debug.Print objIE.Document.Count
         For Each objElement In objIE.Document.all
             'Debug.Print objElement.tagName, objElement.ID
-            If (objElement.tagName = "SPAN") Then
+            If (objElement.tagname = "SPAN") Then
                 If (objElement.Title = "Delete Line") Then
                     If i = altRowIndex Then
                         objElement.Click
@@ -584,9 +588,9 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM As Stri
                (Len(objElement.ID) > 0) Then
                 CellNum = Right(objElement.ID, Len(objElement.ID) - InStr(objElement.ID, "cell") - 3)
             End If
-            Debug.Print objElement.tagName, objElement.ID, objElement.Title, "__Cell #", CellNum
+            Debug.Print objElement.tagname, objElement.ID, objElement.Title, "__Cell #", CellNum
             If state = 0 Then   'look for span with title "Delete Line" or "Add Line"
-                If (objElement.tagName = "SPAN") Then
+                If (objElement.tagname = "SPAN") Then
                     If (objElement.Title = "Delete Line") Then
                         If i = rowIndex Then
                             state = 1
@@ -601,7 +605,7 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM As Stri
                     End If
                 End If
             ElseIf state = 1 Then   'look for input field for the charge object: tagName "INPUT" with role "textbox"
-                If (objElement.tagName = "INPUT") Then
+                If (objElement.tagname = "INPUT") Then
                     If (objElement.role = "textbox") Or _
                        (objElement.Type = "text") Then
                         state = 2
@@ -619,7 +623,7 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM As Stri
                     End If
                 End If
             ElseIf state = 2 Then   'next input field is Ext
-                If (objElement.tagName = "INPUT") Then
+                If (objElement.tagname = "INPUT") Then
                     If (objElement.role = "textbox") Or _
                        (objElement.Type = "text") Then
                         state = 3 ' Assume WPM Field is present
@@ -640,7 +644,7 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM As Stri
                 If (CellNum = 11) Then  ' Skip if no WPM
                     state = 4
                 End If
-                If (objElement.tagName = "INPUT") Then
+                If (objElement.tagname = "INPUT") Then
                     If (objElement.role = "textbox") Or _
                        (objElement.Type = "text") Then
                         state = 4
@@ -660,7 +664,7 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM As Stri
                     End If
                 End If
             ElseIf state = 4 Then   'next input field is Shift
-                If (objElement.tagName = "INPUT") Then
+                If (objElement.tagname = "INPUT") Then
                     If (objElement.role = "textbox") Or _
                        (objElement.Type = "text") Then
                         state = 5
@@ -679,7 +683,7 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM As Stri
                     End If
                 End If
             ElseIf state = 5 Then   'next input fields are Hours
-                If (objElement.tagName = "INPUT") Then
+                If (objElement.tagname = "INPUT") Then
                     If (objElement.role = "textbox") Or _
                        (objElement.Type = "text") Then
                         objElement.Focus
@@ -752,7 +756,7 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM A
         End If
        'Debug.Print objElement.tagName, objElement.ID, objElement.Title, "__Cell #", CellNum
         If state = 0 Then   'look for span with title "Delete Line" or "Add Line"
-            If (objElement.tagName = "SPAN") Then
+            If (objElement.tagname = "SPAN") Then
                 If (objElement.Title = "Delete Line") Then
                     If i = rowIndex Then
                         state = 1
@@ -762,7 +766,7 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM A
                 End If
             End If
         ElseIf state = 1 Then   'look for input field for the charge object: tagName "INPUT" with role "textbox"
-            If (objElement.tagName = "INPUT") Then
+            If (objElement.tagname = "INPUT") Then
                 If (objElement.role = "textbox") Or _
                    (objElement.Type = "text") Then
                     'Debug.Print state, objElement.Value, UCase(theChargeObj)
@@ -774,7 +778,7 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM A
                 End If
             End If
         ElseIf state = 2 Then   'next input field is Ext
-            If (objElement.tagName = "INPUT") Then
+            If (objElement.tagname = "INPUT") Then
                 If (objElement.role = "textbox") Or _
                    (objElement.Type = "text") Then
                     'Debug.Print state, objElement.Value, UCase(theExt)
@@ -789,7 +793,7 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM A
             If (CellNum = 11) Then  ' Skip if no WPM
                 state = 4
             End If
-            If (objElement.tagName = "INPUT") Then
+            If (objElement.tagname = "INPUT") Then
                 If (objElement.role = "textbox") Or _
                    (objElement.Type = "text") Then
                     state = 4
@@ -800,7 +804,7 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM A
                 End If
             End If
         ElseIf state = 4 Then   'next input field is Shift
-            If (objElement.tagName = "INPUT") Then
+            If (objElement.tagname = "INPUT") Then
                 If (objElement.role = "textbox") Or _
                    (objElement.Type = "text") Then
                     'Debug.Print state, objElement.Value, UCase(theShift)
@@ -813,7 +817,7 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM A
                 End If
             End If
         ElseIf state = 5 Then   'next input fields are Hours
-            If (objElement.tagName = "INPUT") Then
+            If (objElement.tagname = "INPUT") Then
                 If (objElement.role = "textbox") Or _
                    (objElement.Type = "text") Then
                     'TEMPO allows tenths of hours - compare both values as numbers rounded to 1 decimal place
@@ -863,20 +867,20 @@ Sub Check_WD_Job(objIE As Object)
 ' Checks for the "WD Job" field in TEMPO labor entry screen
 '
     Dim objElement As Object
-    Dim found As Boolean
+    Dim Found As Boolean
     
     If (Found_WD_Job = "Y") Or (Found_WD_Job = "N") Then
         'already checked and set variable - nothing more to do
     Else
-        found = False
+        Found = False
         For Each objElement In objIE.Document.all
-            If (objElement.tagName = "LABEL") Then
+            If (objElement.tagname = "LABEL") Then
                 If (UCase(Trim(objElement.innerText)) = "WD JOB") Then
-                    found = True
+                    Found = True
                 End If
             End If
         Next
-        If found Then
+        If Found Then
             Found_WD_Job = "Y"
         Else
             Found_WD_Job = "N"
@@ -912,15 +916,15 @@ Sub IE_EnterDaysOff_TEMPO(objIE As Object, dayName As String, theDate As String,
     For Each objElement In objIE.Document.all
         'Debug.Print objElement.tagName, objElement.ID
         If state = 0 Then   'look for label with the day name: tagName "LABEL" with innerText "Fri", for example
-            If (objElement.tagName = "LABEL") Or _
-               (objElement.tagName = "BDI") Then
+            If (objElement.tagname = "LABEL") Or _
+               (objElement.tagname = "BDI") Then
                 If (UCase(Trim(objElement.innerText)) = UCase(dayName)) Then
                     state = 1
                 End If
             End If
         ElseIf state = 1 Then   'next label element must have correct day number
-            If (objElement.tagName = "LABEL") Or _
-               (objElement.tagName = "BDI") Then
+            If (objElement.tagname = "LABEL") Or _
+               (objElement.tagname = "BDI") Then
                 If (Trim(objElement.innerText) = dayNumStr) Then
                     state = 2
                 Else
@@ -928,7 +932,7 @@ Sub IE_EnterDaysOff_TEMPO(objIE As Object, dayName As String, theDate As String,
                 End If
             End If
         ElseIf state = 2 Then   'find next button: tagName "BUTTON"
-            If (objElement.tagName = "BUTTON") Then
+            If (objElement.tagname = "BUTTON") Then
                 state = 3
                 If (objElement.textContent = "") Or _
                    (UCase(Trim(objElement.textContent)) = UCase(dayName)) Then
@@ -971,15 +975,15 @@ Function IE_VerifyDaysOff_TEMPO(objIE As Object, dayName As String, theDate As S
     For Each objElement In objIE.Document.all
         'Debug.Print objElement.tagName, objElement.ID
         If state = 0 Then   'look for label with the day name: tagName "LABEL" with innerText "Fri", for example
-            If (objElement.tagName = "LABEL") Or _
-               (objElement.tagName = "BDI") Then
+            If (objElement.tagname = "LABEL") Or _
+               (objElement.tagname = "BDI") Then
                 If (UCase(Trim(objElement.innerText)) = UCase(dayName)) Then
                     state = 1
                 End If
             End If
         ElseIf state = 1 Then   'next label element must have correct day number
-            If (objElement.tagName = "LABEL") Or _
-               (objElement.tagName = "BDI") Then
+            If (objElement.tagname = "LABEL") Or _
+               (objElement.tagname = "BDI") Then
                 If (Trim(objElement.innerText) = dayNumStr) Then
                     state = 2
                 Else
@@ -987,7 +991,7 @@ Function IE_VerifyDaysOff_TEMPO(objIE As Object, dayName As String, theDate As S
                 End If
             End If
         ElseIf state = 2 Then   'find next button: tagName "BUTTON"
-            If (objElement.tagName = "BUTTON") Then
+            If (objElement.tagname = "BUTTON") Then
                 state = 3
                 If (objElement.textContent = "") Or _
                    (UCase(Trim(objElement.textContent)) = UCase(dayName)) Then
@@ -1042,14 +1046,14 @@ Function IE_GetWEDate_TEMPO(objIE As Object) As String
     For Each objElement In objIE.Document.all
         'Debug.Print objElement.tagName, objElement.ID
         If state = 0 Then   'look for Payroll W/E label: tagName "LABEL" with innerText "Payroll W/E:"
-            If (objElement.tagName = "LABEL") Or _
-               (objElement.tagName = "BDI") Then
+            If (objElement.tagname = "LABEL") Or _
+               (objElement.tagname = "BDI") Then
                 If (Trim(objElement.innerText) = "Payroll W/E:") Then
                     state = 1
                 End If
             End If
         ElseIf state = 1 Then   'grab next input field to get date: tagName "INPUT"
-            If (objElement.tagName = "INPUT") Then
+            If (objElement.tagname = "INPUT") Then
                 state = 2
                 theStr = Trim(objElement.Value)
                 Exit For
@@ -1072,7 +1076,7 @@ Function IE_GetTimeEntry_TEMPO(objIE As Object) As String
     For Each objElement In objIE.Document.all
         'Debug.Print objElement.tagName, objElement.ID
         'look for Time Entry label: tagName "DIV" with title "Time Entry"
-        If (objElement.tagName = "DIV") Then
+        If (objElement.tagname = "DIV") Then
             If (Trim(objElement.Title) = "Time Entry") Then
                 theStr = objElement.Data - targeturl
             End If
@@ -1097,7 +1101,7 @@ Sub IE_Save_TEMPO(objIE As Object)
     For Each objElement In objIE.Document.all
         'Debug.Print objElement.tagName, objElement.ID
         If state = 0 Then   'look for Save button: tagName "BUTTON" with innerText "Save"
-            If (objElement.tagName = "BUTTON") Then
+            If (objElement.tagname = "BUTTON") Then
                 'Debug.Print objElement.ID, Right(objElement.innerText, 4)
                 If (Right(objElement.innerText, 4) = "Save") Then
                     state = 1
@@ -1150,7 +1154,7 @@ Sub IE_TimeEntry_TEMPO()
     Call IE_Wait_Until_Done(objIE)
     'Check whether page is loaded
     waitTime = 0
-    Do While (IE_GetWEDate_TEMPO(objIE) = "") And (waitTime < TimeOut)
+    Do While (IE_GetWEDate_TEMPO(objIE) = "") And (waitTime < timeout)
         'Wait a little longer
         Call IE_Wait(DoubleDelay)
         waitTime = waitTime + DoubleDelay
@@ -1266,13 +1270,13 @@ Function IE_Activate(objIE As Object) As Boolean
     AppActivate objIE
     On Error GoTo 0
     'make sure window is topmost
-    BringWindowToTop objIE.hwnd
+    BringWindowToTop objIE.hWnd
     'select desired tab if multiple tabs are present
     If windowNameLength > 0 Then
         loopCount = 0
         Do
             'get window title of IE window (includes " - Internet Explorer" at end)
-            retLong = GetWindowText(objIE.hwnd, winTitleBuf, 255)
+            retLong = GetWindowText(objIE.hWnd, winTitleBuf, 255)
             'Debug.Print retLong, winTitleBuf
             If retLong >= windowNameLength Then
                 'check for title match to the length of the desired window name
@@ -1310,7 +1314,7 @@ Sub IE_SendKeys(objIE As Object, theString As String)
     AppActivate objIE
     On Error GoTo 0
     'make sure the window is still in front
-    BringWindowToTop objIE.hwnd
+    BringWindowToTop objIE.hWnd
     'and send the keys
     'workaround for SendKeys bug (see https://support.microsoft.com/en-us/kb/179987)
     DoEvents
@@ -1326,3 +1330,5 @@ Sub IE_Finish()
     End
 End Sub
 
+'Code Module SHA-512
+'''007cfa460016066065286dd2cd85bd3a938be477169637f9833c4aae679ec30432deba85c75ec9cee52bc5ec0b81e66221e307b0eba5c50aad3cdaaa009cc674

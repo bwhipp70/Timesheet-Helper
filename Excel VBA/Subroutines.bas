@@ -6,19 +6,19 @@ Public HatchRows As Long
 '
 'WinAPI functions
 Private Declare PtrSafe Function BringWindowToTop Lib "user32" (ByVal _
- hwnd As Long) As Long
+ hWnd As Long) As Long
 
 Private Declare PtrSafe Function FindWindow Lib "user32" Alias "FindWindowA" (ByVal _
  lpClassName As Any, ByVal lpWindowName As Any) As Long
 
 Private Declare PtrSafe Function GetTopWindow Lib "user32" (ByVal _
- hwnd As Long) As Long
+ hWnd As Long) As Long
 
 Private Declare PtrSafe Function IsIconic Lib "user32" (ByVal _
- hwnd As Long) As Long
+ hWnd As Long) As Long
 
 Private Declare PtrSafe Function OpenIcon Lib "user32" (ByVal _
- hwnd As Long) As Long
+ hWnd As Long) As Long
 '
 '
 Sub Set_Row_Col_Hatch_Ranges()
@@ -98,7 +98,22 @@ End Function
 Function Find_Last_Column(theRow)
     Find_Last_Column = Cells(theRow, Columns.Count).End(xlToLeft).Column
 End Function
+Sub Debug_Warn_User(subroutineName As String, theMessage As String)
+    ' Common subroutine to display a warning message to the user
+    Dim result As VbMsgBoxResult
 
+    If (Debug_Warn) Then
+        result = MsgBox(Prompt:=theMessage & Chr(10) & Chr(10) & "in '" & subroutineName & "'", _
+                        Buttons:=vbExclamation + vbOKCancel, _
+                        Title:="Warn_User")
+    End If
+    
+    If result = vbCancel Then
+        ' User canceled - break code here!
+        Stop
+    End If
+
+End Sub
 Public Sub IEFrameToTop()
  Dim THandle As Long
  
@@ -226,3 +241,5 @@ Private Sub TestIVCO()
         s6 & " = " & IsValidChargeObject(s6)
 End Sub
 
+'Code Module SHA-512
+'''36f68a049df807186680b94faa94acf9c577c432bb332eebe967c486dbcacce1a7b9c6c75ed6904a5a1a97f24e9bfac5f64c7c142f2f19ac3879fa20344a8296
