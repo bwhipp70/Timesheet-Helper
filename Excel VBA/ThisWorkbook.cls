@@ -251,12 +251,24 @@ With ThisWorkbook.VBProject.References
             Exit Sub
         End If
     Next
-    On Error Resume Next
+    On Error GoTo NoVBIDE
+'    On Error Resume Next
      ThisWorkbook.VBProject.References.AddFromGuid _
         GUID:="{0002E157-0000-0000-C000-000000000046}", _
         Major:=5, Minor:=3
-    On Error GoTo 0
 End With
+
+    On Error GoTo 0
+    
+Exit Sub
+
+NoVBIDE:
+    MsgBox "No VBIDE Project Found!" & vbLf & _
+           "Please go into Developer Tab -> Visual Basic -> Tools -> References" & vbLf & _
+           "and select Visual Basic for Applications (VBIDE)."
+           
+    On Error GoTo 0
+
 End Sub
 Sub RefCheck_Selenium()
 Dim Int1 As Integer
@@ -267,14 +279,23 @@ With ThisWorkbook.VBProject.References
             Exit Sub
         End If
     Next
-    On Error Resume Next
+    On Error GoTo NoSelenium
+'    On Error Resume Next
      ThisWorkbook.VBProject.References.AddFromGuid _
         GUID:="{0277FC34-FD1B-4616-BB19-A9AABCAF2A70}", _
         Major:=2, Minor:=0
-    On Error GoTo 0
 End With
+
+    On Error GoTo 0
+    
+Exit Sub
+
+NoSelenium:
+    MsgBox "No Selenium VB Project Found!" & vbLf & _
+           "If you desire to learn about automation, see the Educational Mode Tab."
+    On Error GoTo 0
 
 End Sub
 
 'Code Module SHA-512
-'''f1555e48f7f7f7e831f14509b11b13ae8d38227700909cacc8cc036f386d27e1a624b3c1fa166d995eece78d39e7d4c28e97638ab13fea715a757502dbd9127e
+'''fcc08682a03c595285c6028a270c42212bc32cf4a786d9581f90031afcc62ab9a44f59d0e4528ca75083653b3bd9a1f9acaec3dbb7643518172d3c53d54baed2

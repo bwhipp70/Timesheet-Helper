@@ -609,7 +609,7 @@ Sub TS_ClearInstructions()
 '    Range("C63").Value = "15"               ' Timeout
 '    Range("C65").Value = "1"                ' Delay
 '    Range("C67").Value = "2"                ' Double Delay
-    Range("Timeout_Delay").Value = "15"               ' Timeout
+    Range("Timeout_Delay").Value = "30"               ' Timeout
     Range("Single_Delay").Value = "1"                ' Delay
     Range("Double_Delay").Value = "2"                ' Double Delay
     Range("TEMPO_ShellHome_Suffix").Value = "#Shell-home"  ' Suffix for Shell Home Page
@@ -685,6 +685,7 @@ Sub TS_ClearConfiguration()
     Range("VacationStart").Select                      ' Vacation Hours at Start of Year
     Selection.ClearContents
 '    Range("I2").Select                      ' Floating Holidays for Year
+'   FloatHolidays is now Legacy Bank hours
     Range("FloatHolidays").Select                      ' Floating Holidays for Year
     Selection.ClearContents
 '    Range("K2").Select                      ' Holiday Hours for Year
@@ -1239,17 +1240,17 @@ Sub TS_ClearWPs()
     Range("B7").Value = "Vacation"          ' Shortcut
     Range("D7").Value = "Vacation - Accrued Paid Time Off (PA)"          ' Description
     
-    Range("A8").Value = "PG"             ' WP #
-    Range("B8").Value = "Sick"          ' Shortcut
-    Range("D8").Value = "Sick Time / Personal Business - Granted Paid Time Off (PG)"          ' Description
+    Range("A8").Value = "LP"             ' WP #
+    Range("B8").Value = "Legacy Bank"          ' Shortcut
+    Range("D8").Value = "Legacy Bank Paid Time Off (LP)"          ' Description
     
-    Range("A9").Value = "PS"             ' WP #
+    Range("A9").Value = "HD"             ' WP #
     Range("B9").Value = "Holiday"          ' Shortcut
     Range("D9").Value = "Holiday - Fixed Paid Time Off (PS)"          ' Description
     
-    Range("A10").Value = "PF"             ' WP #
-    Range("B10").Value = "Floating Holiday"          ' Shortcut
-    Range("D10").Value = "Floating Holiday - Floating Paid Time Off (PF)"          ' Description
+    Range("A10").Value = "_blank______"             ' WP #
+    Range("B10").Value = ""          ' Shortcut
+    Range("D10").Value = ""          ' Description
     
     
 ' 2018 Training Charge Numbers
@@ -1372,7 +1373,7 @@ Sub TS_ClearWPs()
     Range("A2").Select
         
 ' Conditional Format RED if length is incorrect (extra spaces?)
-    Selection.FormatConditions.Add Type:=xlExpression, Formula1:="=NOT(OR(LEN(A2)=2,LEN(A2)=12,LEN(A2)=15,A2=""-""))"
+    Selection.FormatConditions.Add Type:=xlExpression, Formula1:="=NOT(OR(LEN(A2)=2,LEN(A2)=12,LEN(A2)=14,LEN(A2)=15,A2=""-""))"
     Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
     With Selection.FormatConditions(1).Font
         .Bold = True
@@ -1908,4 +1909,4 @@ Sub CloseAndSave()
 End Sub
 
 'Code Module SHA-512
-'''fd5b6ec8d15168742571ae4b2822c6392fd517076181e0a5e239130134ca462114ebc2596e2ed6084c51cc947e2df28e69a70c31321630a5622a1221de4a7c4f
+'''fd8259826e00b7fdc7dc8ba519daeb8bb0338590a5608af12e7d53b7066b52414dba9014facba3fa5553c7336e62401148b2aedcb85d4baa6c491916d1187b77
