@@ -10,14 +10,14 @@ lastrow = Range("a" & Rows.Count).End(xlUp).Row
 
 '(Step 1) Display your Status Bar
 NumberOfBars = 40
-Application.StatusBar = "Name of Task: [" & Space(NumberOfBars) & "]"
+Application.StatusBar = "Name of Task: [" & VBA.Space(NumberOfBars) & "]"
 
 For i = 1 To lastrow
 '(Step 2) Periodically update your Status Bar
     CurrentStatus = Int((i / lastrow) * NumberOfBars)
     pctDone = Round(CurrentStatus / NumberOfBars * 100, 0)
-    Application.StatusBar = "Name of Task: [" & String(CurrentStatus, "|") & _
-                            Space(NumberOfBars - CurrentStatus) & "]" & _
+    Application.StatusBar = "Name of Task: [" & VBA.String(CurrentStatus, "|") & _
+                            VBA.Space(NumberOfBars - CurrentStatus) & "]" & _
                             " " & pctDone & "% Complete"
     DoEvents
     '--------------------------------------
@@ -51,8 +51,8 @@ NumberOfBars = 50
 'Display your Status Bar
 CurrentStatus = Round((pctDone / 100) * NumberOfBars, 0)
 
-Application.StatusBar = TaskName & ": [" & String(CurrentStatus, "|") & _
-                        Space(NumberOfBars - CurrentStatus) & "]" & _
+Application.StatusBar = TaskName & ": [" & VBA.String(CurrentStatus, "|") & _
+                        VBA.Space(NumberOfBars - CurrentStatus) & "]" & _
                             " " & pctDone & "% Complete"
 DoEvents
 
@@ -75,11 +75,11 @@ SecondaryNumberOfBars = 50
 PrimaryCurrentStatus = Round((PrimarypctDone / 100) * PrimaryNumberOfBars, 0)
 SecondaryCurrentStatus = Round((SecondarypctDone / 100) * SecondaryNumberOfBars, 0)
 
-Application.StatusBar = PrimaryTaskName & ": [" & String(PrimaryCurrentStatus, "|") & _
-                        Space(PrimaryNumberOfBars - PrimaryCurrentStatus) & "]" & _
+Application.StatusBar = PrimaryTaskName & ": [" & VBA.String(PrimaryCurrentStatus, "|") & _
+                        VBA.Space(PrimaryNumberOfBars - PrimaryCurrentStatus) & "]" & _
                             " " & PrimarypctDone & "%; " & _
-                        SecondaryTaskName & ": [" & String(SecondaryCurrentStatus, "|") & _
-                        Space(SecondaryNumberOfBars - SecondaryCurrentStatus) & "]" & _
+                        SecondaryTaskName & ": [" & VBA.String(SecondaryCurrentStatus, "|") & _
+                        VBA.Space(SecondaryNumberOfBars - SecondaryCurrentStatus) & "]" & _
                             " " & SecondarypctDone & "%"
 DoEvents
 
@@ -149,4 +149,4 @@ StatusBar_Clear
 End Sub
 
 'Code Module SHA-512
-'''a8cc21701307a8186dbde87cfb1215575c6069832fc2089b66159928eff114873bade1fc186d149266a8fa463931f6dff6b80fc68e5dbef2ff5c1dbe00101466
+'''ef2bfb1165459e3d934f1053f431a1824a7f0804486336728c3e8b6bf387295f3952a854c194db7571d678bf4424c2262579f945ad7e19de892d2be4d63ed74e

@@ -1567,7 +1567,7 @@ Sub TS_ImportData()
         If (Not v208) And (Not v209) And (Not v300) And (Not (TSVer > 3)) Then
             Call TS_Import_Close_Workbook
 '            MsgBox "Invalid Workbook File, Please Try Again"
-            result = MsgBox("File """ & DataBookName & """ is not a supported import format." & Chr(13) & Chr(13) & _
+            result = MsgBox("File """ & DataBookName & """ is not a supported import format." & VBA.Chr(13) & VBA.Chr(13) & _
                     "Please try again using a Timesheet file (version 2.08 or newer)", vbExclamation)
             'If Timesheet was originally protected, reprotect
                 If tsProtected Then
@@ -1830,10 +1830,10 @@ Sub TS_ImportData()
         ' Let user know we're done
         Workbooks(ThisBookName).Activate 'Select original workbook
         Worksheets(ThisSheetName).Activate 'And original worksheet
-        result = MsgBox("Successfully imported data from file" & Chr(13) & _
+        result = MsgBox("Successfully imported data from file" & VBA.Chr(13) & _
                     """" & DataBookName & """.", vbInformation)
         ' Added in ver 3.21
-        result = MsgBox("Please validate the correct Work Schedule is selected!" & Chr(13) & _
+        result = MsgBox("Please validate the correct Work Schedule is selected!" & VBA.Chr(13) & _
                     "Ex. Flex 410, otherwise calculations and upload will not work.")
     
 ' Let's turn calculation on again
@@ -1864,7 +1864,8 @@ Function CCTrim(ChargeCode)
 ' TRIM will remove multiple internal spaces, corrupting AD          MET
 ' CLEAN will not remove trailing spaces
 
-    CCTrim = RTrim(ChargeCode)
+    ' 4.04 - Added VBA in front of RTrim
+    CCTrim = VBA.RTrim(ChargeCode)
 
 End Function
 
@@ -1903,10 +1904,10 @@ Sub CloseAndSave()
 
     Dim pth As String
     pth = ThisWorkbook.FullName
-    Shell "CMD /C PING 10.0.0.0 -n 1 -w 500 >NUL & Excel " & Chr(34) & ThisWorkbook.FullName & Chr(34), vbHide
+    Shell "CMD /C PING 10.0.0.0 -n 1 -w 500 >NUL & Excel " & VBA.Chr(34) & ThisWorkbook.FullName & VBA.Chr(34), vbHide
     ActiveWorkbook.Close savechanges:=True
 
 End Sub
 
 'Code Module SHA-512
-'''fd8259826e00b7fdc7dc8ba519daeb8bb0338590a5608af12e7d53b7066b52414dba9014facba3fa5553c7336e62401148b2aedcb85d4baa6c491916d1187b77
+'''13c36a1dfc3d471baa9160c72cfc86ebc40caeca5f2b9ca4aa5e407db57aec331b78f28fedda8e1150c35de75c8e6fec396e3286b0f526ae93997a424eba49fd

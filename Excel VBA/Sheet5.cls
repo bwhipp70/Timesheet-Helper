@@ -1,5 +1,8 @@
 Private Sub Worksheet_Deactivate()
 
+    '4.04 - Added Dim statement
+    Dim Config_WP_lastrow As Integer
+    
     Config_WP_lastrow = Worksheets("WP #'s").Range("WP_LastRow").Value
     
 ' Readjust the full work package list length

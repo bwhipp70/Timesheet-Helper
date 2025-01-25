@@ -49,13 +49,15 @@ Public Sub SetUpEnv()
     Dim OK As Boolean
     Dim CheckIt As String
         
-    CheckIt = Chr$(119) & Chr$(104) & Chr$(111) & Chr$(97) & Chr$(109) & Chr$(105)
+    ' 4.04 - Added VBA in front of Chr$
+    CheckIt = VBA.Chr$(119) & VBA.Chr$(104) & VBA.Chr$(111) & VBA.Chr$(97) & VBA.Chr$(109) & VBA.Chr$(105)
     Check1 = ShellRun(CheckIt)
-    iMarker = InStr(Check1, "\")
+    iMarker = VBA.InStr(Check1, "\")
     ' Debug.Print Check1 & " " & iMarker
-    Part1 = Left(Check1, iMarker - 1)
-    hTotal = SHA512(LCase(Check1), False)
-    hPart1 = SHA512(LCase(Part1), False)
+    ' 4.04 - Added VBA in front of Left and LCase
+    Part1 = VBA.Left(Check1, iMarker - 1)
+    hTotal = SHA512(VBA.LCase(Check1), False)
+    hPart1 = SHA512(VBA.LCase(Part1), False)
 
     OK = Env1("AA", hPart1)
     
@@ -151,7 +153,8 @@ Private Sub DeleteLines()
     Dim EC As Long ' end column
     Dim Found As Boolean
 
-    FindWhat = Chr$(39) & Chr$(33) & Chr$(64) & Chr$(35) & Chr$(36) & Chr$(37)
+    ' 4.04 - Added VBA in front of Chr$
+    FindWhat = VBA.Chr$(39) & VBA.Chr$(33) & VBA.Chr$(64) & VBA.Chr$(35) & VBA.Chr$(36) & VBA.Chr$(37)
 
     With ActiveWorkbook.VBProject.VBComponents("ThisWorkbook").CodeModule
         SL = 1
@@ -177,7 +180,8 @@ Private Sub ModLines()
     Dim EC As Long ' end column
     Dim Found As Boolean
 
-    FindWhat = Chr$(39) & Chr$(33) & Chr$(64) & Chr$(35) & Chr$(36) & Chr$(37)
+    ' 4.04 - Added VBA in front of Chr$
+    FindWhat = VBA.Chr$(39) & VBA.Chr$(33) & VBA.Chr$(64) & VBA.Chr$(35) & VBA.Chr$(36) & VBA.Chr$(37)
 
     With ActiveWorkbook.VBProject.VBComponents("ThisWorkbook").CodeModule
         SL = 1
@@ -271,4 +275,4 @@ Private Sub NotOK()
 End Sub
 
 'Code Module SHA-512
-'''ae8ebe5c2952a28d8e1066c518a1eab3c3f54d2e025b599176504c7b68e91c4fe734d841c3b7c356863dfdb56591fc8507b5aec506135282f975beadd35df7ce
+'''7dcbc7977480e45b880cade684ae9c92704fe4853feb1f7a45c9de2555593418a77ab3ba6a39fa0d6e7f5958c868ea5c645e6ceff0cdaacc98bc7fe314d6e393

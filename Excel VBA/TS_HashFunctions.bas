@@ -39,8 +39,8 @@ Sub TestHash()
     'sH = SHA512(sIn, b64)
     
     'message box and immediate window outputs
-    Debug.Print sH & vbNewLine & Len(sH) & " characters in length"
-    MsgBox sH & vbNewLine & Len(sH) & " characters in length"
+    Debug.Print sH & vbNewLine & VBA.Len(sH) & " characters in length"
+    MsgBox sH & vbNewLine & VBA.Len(sH) & " characters in length"
     
     'de-comment this block to place the hash in first cell of sheet1
 '    With ThisWorkbook.Worksheets("Sheet1").Cells(1, 1)
@@ -258,7 +258,7 @@ Private Function ConvToBase64String(vIn As Variant) As Variant
         .DocumentElement.DataType = "bin.base64"
         .DocumentElement.nodeTypedValue = vIn
       End With
-    ConvToBase64String = Replace(oD.DocumentElement.Text, vbLf, "")
+    ConvToBase64String = VBA.Replace(oD.DocumentElement.Text, vbLf, "")
     
     Set oD = Nothing
 
@@ -277,7 +277,7 @@ Private Function ConvToHexString(vIn As Variant) As Variant
         .DocumentElement.DataType = "bin.Hex"
         .DocumentElement.nodeTypedValue = vIn
       End With
-    ConvToHexString = Replace(oD.DocumentElement.Text, vbLf, "")
+    ConvToHexString = VBA.Replace(oD.DocumentElement.Text, vbLf, "")
     
     Set oD = Nothing
 
@@ -339,10 +339,11 @@ Public Sub CheckContents()
       cLines = Application.VBE.ActiveVBProject.VBComponents(obj.Name).CodeModule.CountOfLines
       If cLines = 0 Then Stop
       sVBAcode = Application.VBE.ActiveVBProject.VBComponents(obj.Name).CodeModule.Lines(1, cLines)
-      iEndMarker = InStr(sVBAcode, String(3, "'"))
+      ' 4.04 - Added VBA in front of String
+      iEndMarker = VBA.InStr(sVBAcode, VBA.String(3, "'"))
       If iEndMarker = 0 Then Stop
-      sMD5hash = Mid(sVBAcode, iEndMarker + 3)
-      sVBAcode = Left(sVBAcode, iEndMarker)
+      sMD5hash = VBA.Mid(sVBAcode, iEndMarker + 3)
+      sVBAcode = VBA.Left(sVBAcode, iEndMarker)
       MsgBox "sMD5hash = " & sMD5hash & vbNewLine
       MsgBox "sVBACode = " & sVBAcode & vbNewLine
       ' sMD5hash contains the MD5 hash from the comment line at the end of this module[/COLOR]
@@ -373,11 +374,12 @@ Public Function CheckAllHash() As Boolean
       cLines = Application.VBE.ActiveVBProject.VBComponents(obj.Name).CodeModule.CountOfLines
       If cLines = 0 Then Stop
       sVBAcode = Application.VBE.ActiveVBProject.VBComponents(obj.Name).CodeModule.Lines(1, cLines)
-      iEndMarker = InStr(sVBAcode, String(3, "'"))
+      ' 4.04 - Added VBA in front of String
+      iEndMarker = VBA.InStr(sVBAcode, VBA.String(3, "'"))
 '      If iEndMarker = 0 Then Debug.Print "WARNING: No marker at the end of the VBA Code"
       If iEndMarker > 0 Then
-        sCodehash = Mid(sVBAcode, iEndMarker + 3)
-        sVBAcode = Left(sVBAcode, iEndMarker)
+        sCodehash = VBA.Mid(sVBAcode, iEndMarker + 3)
+        sVBAcode = VBA.Left(sVBAcode, iEndMarker)
       End If
       sHash = SHA512(sVBAcode, False)
       If sHash = sCodehash Then
@@ -405,7 +407,7 @@ Public Function FixHash(cm As String, sHash As String) As Boolean
     Dim EC As Long ' end column
     Dim Found As Boolean
 
-    FindWhat = Chr$(39) & Chr$(39) & Chr$(39)
+    FindWhat = VBA.Chr$(39) & VBA.Chr$(39) & VBA.Chr$(39)
 
     With ActiveWorkbook.VBProject.VBComponents(cm).CodeModule
         SL = 1
@@ -460,11 +462,12 @@ Public Sub ShowAndFixAllHash()
       cLines = Application.VBE.ActiveVBProject.VBComponents(obj.Name).CodeModule.CountOfLines
       If cLines = 0 Then Stop
       sVBAcode = Application.VBE.ActiveVBProject.VBComponents(obj.Name).CodeModule.Lines(1, cLines)
-      iEndMarker = InStr(sVBAcode, String(3, "'"))
+      ' 4.04 - Added VBA in front of String
+      iEndMarker = VBA.InStr(sVBAcode, VBA.String(3, "'"))
       If iEndMarker = 0 Then Debug.Print "WARNING: No marker at the end of the VBA Code"
       If iEndMarker > 0 Then
-        sCodehash = Mid(sVBAcode, iEndMarker + 3)
-        sVBAcode = Left(sVBAcode, iEndMarker)
+        sCodehash = VBA.Mid(sVBAcode, iEndMarker + 3)
+        sVBAcode = VBA.Left(sVBAcode, iEndMarker)
       End If
       sHash = SHA512(sVBAcode, False)
       If sHash = sCodehash Then
@@ -480,4 +483,4 @@ Public Sub ShowAndFixAllHash()
 End Sub
  
 'Code Module SHA-512
-'''981581a99812a8036cf7b84727ad3baa518aa962f138e075a1dfe21c42f7e545919fd0c7839c9882605279cab387c7f7309ccc7afdd59aa7344dd927d0803600
+'''4ebe7bd734ab06b04a917a8641335e93ef5a0e798408fac7602f1784c5e87f8f1b4dbe2a0458b4cc5738bae46f5f0d6fd825aa91901fc7a0dabc8008cf1388de

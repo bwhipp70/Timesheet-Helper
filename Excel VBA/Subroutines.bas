@@ -103,7 +103,7 @@ Sub Debug_Warn_User(subroutineName As String, theMessage As String)
     Dim result As VbMsgBoxResult
 
     If (Debug_Warn) Then
-        result = MsgBox(Prompt:=theMessage & Chr(10) & Chr(10) & "in '" & subroutineName & "'", _
+        result = MsgBox(Prompt:=theMessage & VBA.Chr(10) & VBA.Chr(10) & "in '" & subroutineName & "'", _
                         Buttons:=vbExclamation + vbOKCancel, _
                         Title:="Warn_User")
     End If
@@ -200,15 +200,15 @@ Public Function IsValidChargeObject(theString As String) As Boolean
     Dim i As Integer
     
     result = False
-    theLength = Len(theString)
+    theLength = VBA.Len(theString)
     If (theLength = 0) Or (theLength = 1) Or (theLength = 2) Or (theLength = 12) Then
         result = True
     ElseIf (theLength = 15) Then
-        If UCase(Left(theString, 1)) = "P" Then
+        If VBA.UCase(VBA.Left(theString, 1)) = "P" Then
             result = True
             For i = 2 To 15
-                If (Mid(theString, i, 1) < "0") Or _
-                   (Mid(theString, i, 1) > "9") Then
+                If (VBA.Mid(theString, i, 1) < "0") Or _
+                   (VBA.Mid(theString, i, 1) > "9") Then
                     result = False
                 End If
             Next i
@@ -232,14 +232,14 @@ Private Sub TestIVCO()
     s4 = "GHIJKLMNOPQR"
     s5 = "p00100056782345"
     s6 = "P10000000o00234"
-    MsgBox s0 & " = " & IsValidChargeObject(s0) & Chr(10) & _
-        s1 & " = " & IsValidChargeObject(s1) & Chr(10) & _
-        s2 & " = " & IsValidChargeObject(s2) & Chr(10) & _
-        s3 & " = " & IsValidChargeObject(s3) & Chr(10) & _
-        s4 & " = " & IsValidChargeObject(s4) & Chr(10) & _
-        s5 & " = " & IsValidChargeObject(s5) & Chr(10) & _
+    MsgBox s0 & " = " & IsValidChargeObject(s0) & VBA.Chr(10) & _
+        s1 & " = " & IsValidChargeObject(s1) & VBA.Chr(10) & _
+        s2 & " = " & IsValidChargeObject(s2) & VBA.Chr(10) & _
+        s3 & " = " & IsValidChargeObject(s3) & VBA.Chr(10) & _
+        s4 & " = " & IsValidChargeObject(s4) & VBA.Chr(10) & _
+        s5 & " = " & IsValidChargeObject(s5) & VBA.Chr(10) & _
         s6 & " = " & IsValidChargeObject(s6)
 End Sub
 
 'Code Module SHA-512
-'''36f68a049df807186680b94faa94acf9c577c432bb332eebe967c486dbcacce1a7b9c6c75ed6904a5a1a97f24e9bfac5f64c7c142f2f19ac3879fa20344a8296
+'''1b58b96c5e2c267c73deb4b34083b8a092dc89af2ae22ec405507c828b95b380c24eeccd884f85f474bc453151ee8c96d976ab709f06f05438f387e0239a62d5

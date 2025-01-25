@@ -144,7 +144,7 @@ Dim theDate
     Range("H8") = "X" 'Sat
     Range("I8") = "X" 'Sun
     'update Off Friday
-    If UCase(Range("N7").Value) = "OFF" Then
+    If VBA.UCase(Range("N7").Value) = "OFF" Then
         Range("N7") = ""
         Range("G8") = "X" 'first Fri
     Else
@@ -185,7 +185,7 @@ Sub ClearLaborHours_Flex980_2weeks()
     Call ClearLaborHours_Flex980_2weeks_Last_Week
     Call ClearLaborHours_Flex980_2weeks_Next_Week
     'update Days Off for Off Fridays
-    If UCase(Range("T7").Value) = "OFF" Then
+    If VBA.UCase(Range("T7").Value) = "OFF" Then
         Range("T8") = "X" 'second Fri this week
         Range("Y8") = "X" 'first Fri next week
     Else
@@ -220,7 +220,7 @@ Dim theDate
     'clear labor hours from week 2
     Call ClearLaborHours_Flex980_2weeks_Next_Week
     'update Off Friday
-    If UCase(Range("T7").Value) = "OFF" Then
+    If VBA.UCase(Range("T7").Value) = "OFF" Then
         Range("T7") = ""
         Range("AF8") = "X" 'second Fri next week
     Else
@@ -747,7 +747,7 @@ Dim i
                         Workbooks(DataBookName).Activate
                         Sheets("Instructions").Select
                         Range("WorkSchedule_Selected").Select
-                        result = MsgBox("Unknown Work Schedule in file" & Chr(13) & _
+                        result = MsgBox("Unknown Work Schedule in file" & VBA.Chr(13) & _
                             """" & DataBookName & """!", vbExclamation)
                         supportedFile = True 'bypass "not a supported import format" error dialog
                     End If
@@ -809,7 +809,7 @@ Dim i
                         Workbooks(DataBookName).Activate
                         Sheets("Instructions").Select
                         Range("WorkSchedule_Selected").Select
-                        result = MsgBox("Unknown Work Schedule in file" & Chr(13) & _
+                        result = MsgBox("Unknown Work Schedule in file" & VBA.Chr(13) & _
                             """" & DataBookName & """!", vbExclamation)
                         supportedFile = True 'bypass "not a supported import format" error dialog
                     End If
@@ -887,14 +887,14 @@ Dim i
                             theValues(2) = ""
                             theValues(3) = ""
                             'check for Ext (3 digits at end of 15-character charge number)
-                            If Len(theValues(1)) > 12 Then
-                                If UCase(Left(theValues(1), 3)) = "P00" Then
+                            If VBA.Len(theValues(1)) > 12 Then
+                                If VBA.UCase(VBA.Left(theValues(1), 3)) = "P00" Then
                                     'SAP charge number - leave alone
                                 Else
                                     'copy 3-character extension to Ext
-                                    theValues(2) = Mid(theValues(1), 13, 3)
+                                    theValues(2) = VBA.Mid(theValues(1), 13, 3)
                                     'set the Charge Object to 12 characters
-                                    theValues(1) = Left(theValues(1), 12)
+                                    theValues(1) = VBA.Left(theValues(1), 12)
                                 End If
                             End If
                         End If
@@ -997,12 +997,12 @@ Dim i
             Workbooks(ThisBookName).Activate 'Select original workbook
             Worksheets(ThisSheetName).Activate 'And original worksheet
             If Not supportedFile Then
-                result = MsgBox("File """ & DataBookName & """ is not a supported import format." & Chr(13) & Chr(13) & _
+                result = MsgBox("File """ & DataBookName & """ is not a supported import format." & VBA.Chr(13) & VBA.Chr(13) & _
                     "Please try again using an UpTEMPO file or SuperSTAR file (version 0.8b0 or newer)", vbExclamation)
             End If
             If Continue_Import Then
                 Sheets(Get_Work_Schedule_SheetName(WorkSchedule)).Select
-                result = MsgBox("Successfully imported data from file" & Chr(13) & _
+                result = MsgBox("Successfully imported data from file" & VBA.Chr(13) & _
                     """" & DataBookName & """.", vbInformation)
             End If
         End If
@@ -1142,4 +1142,4 @@ Sub CleanForDistribution()
 End Sub
 
 'Code Module SHA-512
-'''e42ceeece9ed14e67479cde9e3482b5e35a72a05126f733da556bd1e78d6e1bf380f9c470fad7917673f05c918c973d42f8104efba444e90069d53fbb990df75
+'''d355b620fb4d05d0781be6c6dc10c1f10e4eb08066dc24a16996902ac5996a328db1c5476ab2d7bdda0d75821c136ce5b81bb253547dac8b6493cf353945bdc7

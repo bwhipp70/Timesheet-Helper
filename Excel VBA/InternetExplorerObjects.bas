@@ -1,6 +1,7 @@
 ' Timesheet Helper Comments
 '
 ' 3.20 - 3 January 2021 - changes to IE_EnterLabor to accomodate new Flex410 sheet
+' 4.04 - 12 January 2025 - Added .VBA in front of string functions for increased compatibility
 '
 '
 '***********************************************************************************
@@ -148,7 +149,7 @@ Sub IE_EnterLabor(CallingSheet)
                 Sheets(CallingSheet).Select
                 Range("Q2").Select
                 result = MsgBox("The week ending (W/E) date in TEMPO (" & MMDDYYYYstr & _
-                        ") does not match the Current Week Ending date." & Chr(13) & _
+                        ") does not match the Current Week Ending date." & VBA.Chr(13) & _
                         "Please verify the week ending dates and try again.", vbExclamation)
                 IE_Finish
             End If
@@ -199,7 +200,7 @@ Sub IE_EnterLabor(CallingSheet)
                         theHours(7) = Sheets(CallingSheet).Cells(iRow, 14).Value 'Fri
                         ' Added in Rev 3.21 - sending the WPM Field
                         Call IE_EnterChargeObj_TEMPO(objIE, iEntries, _
-                            Left(Sheets(CallingSheet).Cells(iRow, 2).Value, 10), _
+                            VBA.Left(Sheets(CallingSheet).Cells(iRow, 2).Value, 10), _
                             Sheets(CallingSheet).Cells(iRow, 3).Value, _
                             Sheets(CallingSheet).Cells(iRow, 5).Value, _
                             Sheets(CallingSheet).Cells(iRow, 6).Value, _
@@ -215,7 +216,7 @@ Sub IE_EnterLabor(CallingSheet)
                         theHours(7) = Sheets(CallingSheet).Cells(iRow, 20).Value 'Fri
                         ' Added in Rev 3.21 - sending the WPM Field
                         Call IE_EnterChargeObj_TEMPO(objIE, iEntries, _
-                            Left(Sheets(CallingSheet).Cells(iRow, 2).Value, 10), _
+                            VBA.Left(Sheets(CallingSheet).Cells(iRow, 2).Value, 10), _
                             Sheets(CallingSheet).Cells(iRow, 3).Value, _
                             Sheets(CallingSheet).Cells(iRow, 5).Value, _
                             Sheets(CallingSheet).Cells(iRow, 6).Value, _
@@ -231,7 +232,7 @@ Sub IE_EnterLabor(CallingSheet)
                         theHours(6) = Sheets(CallingSheet).Cells(iRow, 14).Value 'Sun
                         ' Added in Rev 3.21 - sending the WPM Field
                         Call IE_EnterChargeObj_TEMPO(objIE, iEntries, _
-                            Left(Sheets(CallingSheet).Cells(iRow, 2).Value, 10), _
+                            VBA.Left(Sheets(CallingSheet).Cells(iRow, 2).Value, 10), _
                             Sheets(CallingSheet).Cells(iRow, 3).Value, _
                             Sheets(CallingSheet).Cells(iRow, 5).Value, _
                             Sheets(CallingSheet).Cells(iRow, 6).Value, _
@@ -307,7 +308,7 @@ Sub IE_EnterLabor(CallingSheet)
                             theHours(7) = Sheets(CallingSheet).Cells(iRow, 14).Value 'Fri
                             ' Added in Rev 3.21 - sending the WPM Field
                             entriesMatch = IE_VerifyChargeObj_TEMPO(objIE, iEntries, _
-                                Left(Sheets(CallingSheet).Cells(iRow, 2).Value, 10), _
+                                VBA.Left(Sheets(CallingSheet).Cells(iRow, 2).Value, 10), _
                                 Sheets(CallingSheet).Cells(iRow, 3).Value, _
                                 Sheets(CallingSheet).Cells(iRow, 5).Value, _
                                 Sheets(CallingSheet).Cells(iRow, 6).Value, _
@@ -323,7 +324,7 @@ Sub IE_EnterLabor(CallingSheet)
                             theHours(7) = Sheets(CallingSheet).Cells(iRow, 20).Value 'Fri
                             ' Added in Rev 3.21 - sending the WPM Field
                             entriesMatch = IE_VerifyChargeObj_TEMPO(objIE, iEntries, _
-                                Left(Sheets(CallingSheet).Cells(iRow, 2).Value, 10), _
+                                VBA.Left(Sheets(CallingSheet).Cells(iRow, 2).Value, 10), _
                                 Sheets(CallingSheet).Cells(iRow, 3).Value, _
                                 Sheets(CallingSheet).Cells(iRow, 5).Value, _
                                 Sheets(CallingSheet).Cells(iRow, 6).Value, _
@@ -339,7 +340,7 @@ Sub IE_EnterLabor(CallingSheet)
                             theHours(6) = Sheets(CallingSheet).Cells(iRow, 14).Value 'Sun
                             ' Added in Rev 3.21 - sending the WPM Field
                             entriesMatch = IE_VerifyChargeObj_TEMPO(objIE, iEntries, _
-                                Left(Sheets(CallingSheet).Cells(iRow, 2).Value, 10), _
+                                VBA.Left(Sheets(CallingSheet).Cells(iRow, 2).Value, 10), _
                                 Sheets(CallingSheet).Cells(iRow, 3).Value, _
                                 Sheets(CallingSheet).Cells(iRow, 5).Value, _
                                 Sheets(CallingSheet).Cells(iRow, 6).Value, _
@@ -366,11 +367,11 @@ Sub IE_EnterLabor(CallingSheet)
         Excel_Activate
         If entriesMatch Then
             If (CompletedDialogX <> "") Then
-                result = MsgBox("Labor entry completed!" & Chr(10) & Chr(10) & _
+                result = MsgBox("Labor entry completed!" & VBA.Chr(10) & VBA.Chr(10) & _
                     "Remember to review the labor and click the Save button in TEMPO.", vbInformation)
             End If
         Else
-            result = MsgBox("Unable to enter labor correctly!" & Chr(10) & Chr(10) & _
+            result = MsgBox("Unable to enter labor correctly!" & VBA.Chr(10) & VBA.Chr(10) & _
                 "Tried " & loopLimit & " times and found at least one incorrect entry each time.", vbExclamation)
         End If
     Else
@@ -456,8 +457,8 @@ Function IE_Find_TEMPO() As Object
             Exit For
         End If
         
-        If Len(IE_TabURL) > Len(URL_TEMPO) Then
-            If Left(IE_TabURL, Len(URL_TEMPO)) = URL_TEMPO Then
+        If VBA.Len(IE_TabURL) > VBA.Len(URL_TEMPO) Then
+            If VBA.Left(IE_TabURL, VBA.Len(URL_TEMPO)) = URL_TEMPO Then
                 'Found a valid TEMPO URL
                 foundTEMPO = True
                 Exit For
@@ -584,9 +585,9 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM As Stri
         For Each objElement In objIE.Document.all
             'Debug.Print objElement.tagName, objElement.ID
             'Debug.Print "ID: ", objElement.ID, "Length: ", Len(objElement.ID), "InStr: ", InStr(objElement.ID, "cell")
-            If (InStr(objElement.ID, "cell") > 0) And _
-               (Len(objElement.ID) > 0) Then
-                CellNum = Right(objElement.ID, Len(objElement.ID) - InStr(objElement.ID, "cell") - 3)
+            If (VBA.InStr(objElement.ID, "cell") > 0) And _
+               (VBA.Len(objElement.ID) > 0) Then
+                CellNum = VBA.Right(objElement.ID, VBA.Len(objElement.ID) - VBA.InStr(objElement.ID, "cell") - 3)
             End If
             Debug.Print objElement.tagname, objElement.ID, objElement.Title, "__Cell #", CellNum
             If state = 0 Then   'look for span with title "Delete Line" or "Add Line"
@@ -610,7 +611,7 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM As Stri
                        (objElement.Type = "text") Then
                         state = 2
                         objElement.Focus
-                        If Not (objElement.Value = UCase(theChargeObj)) Then
+                        If Not (objElement.Value = VBA.UCase(theChargeObj)) Then
                             objElement.Value = theChargeObj
                             'objElement.Click
                             Set evt = objIE.Document.createEvent("HTMLEvents")
@@ -628,7 +629,7 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM As Stri
                        (objElement.Type = "text") Then
                         state = 3 ' Assume WPM Field is present
                         objElement.Focus
-                        If Not (objElement.Value = UCase(theExt)) Then
+                        If Not (objElement.Value = VBA.UCase(theExt)) Then
                             objElement.Value = theExt
                             'objElement.Click
                             Set evt = objIE.Document.createEvent("HTMLEvents")
@@ -651,7 +652,7 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM As Stri
                         objElement.Focus
                         ' We don't have a field for WD Job
                         '  set WD Job to blank, let user enter the correct code later if needed
-                        If Not (objElement.Value = UCase(theWPM)) Then
+                        If Not (objElement.Value = VBA.UCase(theWPM)) Then
                             objElement.Value = theWPM
                             'objElement.Click
                             Set evt = objIE.Document.createEvent("HTMLEvents")
@@ -670,7 +671,7 @@ Sub IE_EnterChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM As Stri
                         state = 5
                         j = 0
                         objElement.Focus
-                        If Not (objElement.Value = UCase(theShift)) Then
+                        If Not (objElement.Value = VBA.UCase(theShift)) Then
                             objElement.Value = theShift
                             'objElement.Click
                             Set evt = objIE.Document.createEvent("HTMLEvents")
@@ -750,9 +751,9 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM A
     For Each objElement In objIE.Document.all
         'Debug.Print objElement.tagName, objElement.ID
         'Debug.Print "ID: ", objElement.ID, "Length: ", Len(objElement.ID), "InStr: ", InStr(objElement.ID, "cell")
-        If (InStr(objElement.ID, "cell") > 0) And _
-           (Len(objElement.ID) > 0) Then
-                CellNum = Right(objElement.ID, Len(objElement.ID) - InStr(objElement.ID, "cell") - 3)
+        If (VBA.InStr(objElement.ID, "cell") > 0) And _
+           (VBA.Len(objElement.ID) > 0) Then
+                CellNum = VBA.Right(objElement.ID, VBA.Len(objElement.ID) - VBA.InStr(objElement.ID, "cell") - 3)
         End If
        'Debug.Print objElement.tagName, objElement.ID, objElement.Title, "__Cell #", CellNum
         If state = 0 Then   'look for span with title "Delete Line" or "Add Line"
@@ -771,7 +772,7 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM A
                    (objElement.Type = "text") Then
                     'Debug.Print state, objElement.Value, UCase(theChargeObj)
                     state = 2
-                    If Not (objElement.Value = UCase(theChargeObj)) Then
+                    If Not (objElement.Value = VBA.UCase(theChargeObj)) Then
                         matches = False
                         Exit For
                     End If
@@ -783,7 +784,7 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM A
                    (objElement.Type = "text") Then
                     'Debug.Print state, objElement.Value, UCase(theExt)
                     state = 3 ' Assume WPM Field is present
-                    If Not (objElement.Value = UCase(theExt)) Then
+                    If Not (objElement.Value = VBA.UCase(theExt)) Then
                         matches = False
                         Exit For
                     End If
@@ -797,7 +798,7 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM A
                 If (objElement.role = "textbox") Or _
                    (objElement.Type = "text") Then
                     state = 4
-                    If Not (objElement.Value = UCase(theWPM)) Then
+                    If Not (objElement.Value = VBA.UCase(theWPM)) Then
                         matches = False
                         Exit For
                     End If
@@ -810,7 +811,7 @@ Function IE_VerifyChargeObj_TEMPO(objIE As Object, rowIndex As Integer, theWPM A
                     'Debug.Print state, objElement.Value, UCase(theShift)
                      state = 5
                     j = 0
-                    If Not (objElement.Value = UCase(theShift)) Then
+                    If Not (objElement.Value = VBA.UCase(theShift)) Then
                         matches = False
                         Exit For
                     End If
@@ -875,7 +876,7 @@ Sub Check_WD_Job(objIE As Object)
         Found = False
         For Each objElement In objIE.Document.all
             If (objElement.tagname = "LABEL") Then
-                If (UCase(Trim(objElement.innerText)) = "WD JOB") Then
+                If (VBA.UCase(VBA.Trim(objElement.innerText)) = "WD JOB") Then
                     Found = True
                 End If
             End If
@@ -918,14 +919,14 @@ Sub IE_EnterDaysOff_TEMPO(objIE As Object, dayName As String, theDate As String,
         If state = 0 Then   'look for label with the day name: tagName "LABEL" with innerText "Fri", for example
             If (objElement.tagname = "LABEL") Or _
                (objElement.tagname = "BDI") Then
-                If (UCase(Trim(objElement.innerText)) = UCase(dayName)) Then
+                If (VBA.UCase(VBA.Trim(objElement.innerText)) = VBA.UCase(dayName)) Then
                     state = 1
                 End If
             End If
         ElseIf state = 1 Then   'next label element must have correct day number
             If (objElement.tagname = "LABEL") Or _
                (objElement.tagname = "BDI") Then
-                If (Trim(objElement.innerText) = dayNumStr) Then
+                If (VBA.Trim(objElement.innerText) = dayNumStr) Then
                     state = 2
                 Else
                     state = 0
@@ -935,7 +936,7 @@ Sub IE_EnterDaysOff_TEMPO(objIE As Object, dayName As String, theDate As String,
             If (objElement.tagname = "BUTTON") Then
                 state = 3
                 If (objElement.textContent = "") Or _
-                   (UCase(Trim(objElement.textContent)) = UCase(dayName)) Then
+                   (VBA.UCase(VBA.Trim(objElement.textContent)) = VBA.UCase(dayName)) Then
                     'button is On - textContent is empty or contains the day name (as a tooltip)
                     If dayOffValue = "" Then 'desired value is On
                         'already On, nothing to do
@@ -977,14 +978,14 @@ Function IE_VerifyDaysOff_TEMPO(objIE As Object, dayName As String, theDate As S
         If state = 0 Then   'look for label with the day name: tagName "LABEL" with innerText "Fri", for example
             If (objElement.tagname = "LABEL") Or _
                (objElement.tagname = "BDI") Then
-                If (UCase(Trim(objElement.innerText)) = UCase(dayName)) Then
+                If (VBA.UCase(VBA.Trim(objElement.innerText)) = VBA.UCase(dayName)) Then
                     state = 1
                 End If
             End If
         ElseIf state = 1 Then   'next label element must have correct day number
             If (objElement.tagname = "LABEL") Or _
                (objElement.tagname = "BDI") Then
-                If (Trim(objElement.innerText) = dayNumStr) Then
+                If (VBA.Trim(objElement.innerText) = dayNumStr) Then
                     state = 2
                 Else
                     state = 0
@@ -994,7 +995,7 @@ Function IE_VerifyDaysOff_TEMPO(objIE As Object, dayName As String, theDate As S
             If (objElement.tagname = "BUTTON") Then
                 state = 3
                 If (objElement.textContent = "") Or _
-                   (UCase(Trim(objElement.textContent)) = UCase(dayName)) Then
+                   (VBA.UCase(VBA.Trim(objElement.textContent)) = VBA.UCase(dayName)) Then
                     'button is On - textContent is empty or contains the day name (as a tooltip)
                     If dayOffValue = "" Then 'desired value is On
                         matches = True
@@ -1048,21 +1049,21 @@ Function IE_GetWEDate_TEMPO(objIE As Object) As String
         If state = 0 Then   'look for Payroll W/E label: tagName "LABEL" with innerText "Payroll W/E:"
             If (objElement.tagname = "LABEL") Or _
                (objElement.tagname = "BDI") Then
-                If (Trim(objElement.innerText) = "Payroll W/E:") Then
+                If (VBA.Trim(objElement.innerText) = "Payroll W/E:") Then
                     state = 1
                 End If
             End If
         ElseIf state = 1 Then   'grab next input field to get date: tagName "INPUT"
             If (objElement.tagname = "INPUT") Then
                 state = 2
-                theStr = Trim(objElement.Value)
+                theStr = VBA.Trim(objElement.Value)
                 Exit For
             End If
         End If
     Next
 
     ' Added v3.23 to fix a TEMPO update that broke week compare
-    theStr = Format(theStr, "mm/dd/yyyy")
+    theStr = VBA.Format(theStr, "mm/dd/yyyy")
     IE_GetWEDate_TEMPO = theStr
 End Function
 Function IE_GetTimeEntry_TEMPO(objIE As Object) As String
@@ -1077,7 +1078,7 @@ Function IE_GetTimeEntry_TEMPO(objIE As Object) As String
         'Debug.Print objElement.tagName, objElement.ID
         'look for Time Entry label: tagName "DIV" with title "Time Entry"
         If (objElement.tagname = "DIV") Then
-            If (Trim(objElement.Title) = "Time Entry") Then
+            If (VBA.Trim(objElement.Title) = "Time Entry") Then
                 theStr = objElement.Data - targeturl
             End If
         End If
@@ -1103,7 +1104,7 @@ Sub IE_Save_TEMPO(objIE As Object)
         If state = 0 Then   'look for Save button: tagName "BUTTON" with innerText "Save"
             If (objElement.tagname = "BUTTON") Then
                 'Debug.Print objElement.ID, Right(objElement.innerText, 4)
-                If (Right(objElement.innerText, 4) = "Save") Then
+                If (VBA.Right(objElement.innerText, 4) = "Save") Then
                     state = 1
                     objElement.Focus
                     'objElement.Click   'this doesn't work
@@ -1235,8 +1236,8 @@ Function IE_WhatsRunning() As String
         IE_WhatsRunning = "TEMPO Logged Off Page"
         Exit Function
     End If
-    If Len(IE_TabURL) > Len(URL_TEMPO) Then
-        If Left(IE_TabURL, Len(URL_TEMPO)) = URL_TEMPO Then
+    If VBA.Len(IE_TabURL) > VBA.Len(URL_TEMPO) Then
+        If VBA.Left(IE_TabURL, VBA.Len(URL_TEMPO)) = URL_TEMPO Then
             IE_WhatsRunning = "TEMPO Other Page"
             Exit Function
         End If
@@ -1260,7 +1261,7 @@ Function IE_Activate(objIE As Object) As Boolean
     foundTab = False
     objIE.Visible = True
     windowName = objIE.Document.Title
-    windowNameLength = Len(windowName)
+    windowNameLength = VBA.Len(windowName)
     'this doesn't work when TEMPO is in a tab in IE that is not currently selected
     'but we'll wrap it with an error handler so we can continue anyway
     On Error Resume Next
@@ -1280,7 +1281,7 @@ Function IE_Activate(objIE As Object) As Boolean
             'Debug.Print retLong, winTitleBuf
             If retLong >= windowNameLength Then
                 'check for title match to the length of the desired window name
-                If Left(winTitleBuf, windowNameLength) = windowName Then
+                If VBA.Left(winTitleBuf, windowNameLength) = windowName Then
                     'it is a match!
                     foundTab = True
                 End If
@@ -1331,4 +1332,4 @@ Sub IE_Finish()
 End Sub
 
 'Code Module SHA-512
-'''007cfa460016066065286dd2cd85bd3a938be477169637f9833c4aae679ec30432deba85c75ec9cee52bc5ec0b81e66221e307b0eba5c50aad3cdaaa009cc674
+'''e9f2175b8c594bf4336aed7eee6772860fd4cc564d27d2fd8f1850d62f33047680b54aa45fc285637db8867b0043e992ffe5c11a7008be3a9431603865244056

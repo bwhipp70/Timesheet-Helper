@@ -163,10 +163,10 @@ Dim pwd As String
     Select Case Application.LanguageSettings.LanguageID(msoLanguageIDUI)
         ' For the japanese version
         Case 1041
-            sCaption = ChrW(&H30D7) & ChrW(&H30ED) & ChrW(&H30B8) & _
-                        ChrW(&H30A7) & ChrW(&H30AF) & ChrW(&H30C8) & _
-                        ChrW(&H20) & ChrW(&H30D7) & ChrW(&H30ED) & _
-                        ChrW(&H30D1) & ChrW(&H30C6) & ChrW(&H30A3)
+            sCaption = VBA.ChrW(&H30D7) & VBA.ChrW(&H30ED) & VBA.ChrW(&H30B8) & _
+                        VBA.ChrW(&H30A7) & VBA.ChrW(&H30AF) & VBA.ChrW(&H30C8) & _
+                        VBA.ChrW(&H20) & VBA.ChrW(&H30D7) & VBA.ChrW(&H30ED) & _
+                        VBA.ChrW(&H30D1) & VBA.ChrW(&H30C6) & VBA.ChrW(&H30A3)
         Case Else
             sCaption = " Password"
     End Select
@@ -214,9 +214,9 @@ Dim pwd As String
         lRet2 = SendMessage(hWndPassword, EM_REPLACESEL, 0, ByVal g_Password)
 
         ' As a check, get the text back out of the pasword box and verify it's the same
-        pwd = String(260, Chr(0))
-        lRet2 = SendMessage(hWndPassword, WM_GETTEXT, Len(pwd), ByVal pwd)
-        pwd = Left(pwd, InStr(1, pwd, Chr(0), 0) - 1)
+        pwd = VBA.String(260, VBA.Chr(0))
+        lRet2 = SendMessage(hWndPassword, WM_GETTEXT, VBA.Len(pwd), ByVal pwd)
+        pwd = VBA.Left(pwd, VBA.InStr(1, pwd, VBA.Chr(0), 0) - 1)
         ' If not the same then we have an issue
         ' Skip to the end of the loop, wait 0.1 secs and try again
         If pwd <> g_Password Then GoTo Continue
@@ -338,4 +338,4 @@ ErrorHandler:
 End Function
 
 'Code Module SHA-512
-'''ad4c2fba75dd24ac01ef88ad574b6c80c5611c38cf5dd83afc1d15b6a9b994d4156866fd97cd7f7c314eecf762f5a043672f859fc5f04f1781cc85745d4abb11
+'''1614c139dc4d03b90c689023a8bcdbc44375a3d632e7f5ba963e3579e0ddf136994208505739a593e617f14da6cd75f4c8c30a0316588df1f40d3542e8b74ed6

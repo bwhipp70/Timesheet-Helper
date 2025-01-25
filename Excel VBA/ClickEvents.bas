@@ -11,6 +11,7 @@
 ' 2021-01-04 WRH: Added public constant Debug_Warn
 ' 2020-12-31 WRH: Updated debug and execution logic (added Perform_Click constant)
 ' 2020-12-28 WRH: Created for cleaner definition of button actions
+' 2025-01-12 BMW: Added .VBA in front of string functions for increased compatibility
 
 Option Explicit
 
@@ -26,7 +27,7 @@ Private Sub Display_Button_Sub(theSub As String)
     Dim thePrompt As String
     Dim theButtons As Long
     
-    thePrompt = "Debugging is enabled for ClickEvents" & Chr(10) & Chr(10)
+    thePrompt = "Debugging is enabled for ClickEvents" & VBA.Chr(10) & VBA.Chr(10)
     theButtons = vbInformation
     If Perform_Click Then
         ' tell user what subroutine the button is about call and allow user to cancel
@@ -56,17 +57,17 @@ Sub Warn_Button_Debug()
     Dim thePrompt As String
     
     If (Debug_Click) Or (Not Perform_Click) Or (Debug_Warn) Then
-        thePrompt = "Macro Constant Settings Warning:" & Chr(10) & Chr(10)
+        thePrompt = "Macro Constant Settings Warning:" & VBA.Chr(10) & VBA.Chr(10)
         If Debug_Click Then
-            thePrompt = thePrompt & "Private Const Debug_Click is True, should be False" & Chr(10)
+            thePrompt = thePrompt & "Private Const Debug_Click is True, should be False" & VBA.Chr(10)
         End If
         If Not Perform_Click Then
-            thePrompt = thePrompt & "Private Const Perform_Click is False, should be True" & Chr(10)
+            thePrompt = thePrompt & "Private Const Perform_Click is False, should be True" & VBA.Chr(10)
         End If
         If Debug_Warn Then
-            thePrompt = thePrompt & "Public Const Debug_Warn is True, should be False" & Chr(10)
+            thePrompt = thePrompt & "Public Const Debug_Warn is True, should be False" & VBA.Chr(10)
         End If
-        thePrompt = thePrompt & Chr(10) & "Please fix in macro module ClickEvents!"
+        thePrompt = thePrompt & VBA.Chr(10) & "Please fix in macro module ClickEvents!"
         
         result = MsgBox(Prompt:=thePrompt, _
                         Buttons:=vbExclamation + vbOKOnly, _
@@ -175,4 +176,4 @@ Sub Simple_Labor_Adjustment_Clear_Click()
 End Sub
 
 'Code Module SHA-512
-'''8bcffa01d3e308f0b2849b0e696509c78cc2c4804e291d746812988af858842478beb4055ad320c2c8b409cb2fc0f7c0bcd992070ce0802c2a07ffdc5c0aeecb
+'''3086cdff04858ffe6a13c64de514ab2ac3103e3da217de5659b34479e224ae9a8a44cbe551e138694c2aa256a0332be306bca0efc8d4572c99d123ba0236d876

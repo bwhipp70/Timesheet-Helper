@@ -141,7 +141,7 @@ Sub SB_EnterLabor(CallingSheet)
     ' Added in TS Helper
     If SB_WhatsRunning(driver) = "TEMPO Authentication Page" Then
         Excel_Activate
-        result = MsgBox("Authenticate Then Press OK." & Chr(13) & _
+        result = MsgBox("Authenticate Then Press OK." & VBA.Chr(13) & _
                         "NOTE: The RSA Token only works once per minute.", vbExclamation)
     End If
     
@@ -219,7 +219,7 @@ Sub SB_EnterLabor(CallingSheet)
                     Range("BH10").Select ' Modified from UpTempo
                 End If
                 result = MsgBox("The week ending (W/E) date in TEMPO (" & TEMPO_WEdate & _
-                        ") does not match the Current Week Ending date." & Chr(13) & _
+                        ") does not match the Current Week Ending date." & VBA.Chr(13) & _
                         "Please verify the week ending dates and try again.", vbExclamation)
                 ' SB_Finish
             End If
@@ -256,7 +256,7 @@ Sub SB_EnterLabor(CallingSheet)
                     Range("BH10").Select ' Modified from UpTempo
                 End If
                 result = MsgBox("The week ending (W/E) date in TEMPO (" & TEMPO_WEdate & _
-                        ") STILL does not match (second try) the Current Week Ending date." & Chr(13) & _
+                        ") STILL does not match (second try) the Current Week Ending date." & VBA.Chr(13) & _
                         "Stopping Macro, please try again.", vbExclamation)
                 SB_Finish
             End If
@@ -469,18 +469,18 @@ Sub SB_EnterLabor(CallingSheet)
         Excel_Activate
         If entriesMatch Then
             'Must show this dialog!  After dialog is closed, browser will close too!
-            result = MsgBox("DO NOT USE THIS TO SAVE YOUR LABOR!" & Chr(10) & Chr(10) & _
+            result = MsgBox("DO NOT USE THIS TO SAVE YOUR LABOR!" & VBA.Chr(10) & VBA.Chr(10) & _
                 "This is for Educational Purposes Only.", vbExclamation)
-            result = MsgBox("Labor entry completed!" & Chr(10) & Chr(10) & _
-                "Review the labor; if correct, click the Save button in TEMPO." & Chr(10) & Chr(10) & _
-                "The TEMPO window will be closed when you click OK," & Chr(10) & _
+            result = MsgBox("Labor entry completed!" & VBA.Chr(10) & VBA.Chr(10) & _
+                "Review the labor; if correct, click the Save button in TEMPO." & VBA.Chr(10) & VBA.Chr(10) & _
+                "The TEMPO window will be closed when you click OK," & VBA.Chr(10) & _
                 "and all unsaved changes will be lost!", vbExclamation)
-            result = MsgBox("Last chance!!!!" & Chr(10) & Chr(10) & _
-                "The TEMPO window will be closed when you click OK," & Chr(10) & _
+            result = MsgBox("Last chance!!!!" & VBA.Chr(10) & VBA.Chr(10) & _
+                "The TEMPO window will be closed when you click OK," & VBA.Chr(10) & _
                 "and all unsaved changes will be lost!", vbExclamation)
         Else
-            result = MsgBox("Unable to enter labor correctly!" & Chr(10) & Chr(10) & _
-                "Tried " & loopLimit & " times and found at least one incorrect entry each time:" & Chr(10) & _
+            result = MsgBox("Unable to enter labor correctly!" & VBA.Chr(10) & VBA.Chr(10) & _
+                "Tried " & loopLimit & " times and found at least one incorrect entry each time:" & VBA.Chr(10) & _
                 SB_mismatch, vbExclamation)
         End If
 '
@@ -629,7 +629,7 @@ Sub SB_EnterChargeObj_TEMPO(driver As WebDriver, rowIndex As Integer, theChargeO
         StartOver = False
         For Each objElement In driver.FindElementsByXPath("//span[@title='Delete Line'] | //span[@title='Add Line'] | //input | //div[contains(@class,'sapMCbMark')]")
             On Error Resume Next
-                CellNum = Right(objElement.Attribute("tabindex"), 2)
+                CellNum = VBA.Right(objElement.Attribute("tabindex"), 2)
             On Error GoTo 0
             If Debug_Warn Then
                 Debug.Print objElement.tagname, objElement.Text, objElement.Attribute("title")
@@ -666,7 +666,7 @@ Sub SB_EnterChargeObj_TEMPO(driver As WebDriver, rowIndex As Integer, theChargeO
                         'Status Bar
                         sBar = StatusBar_Draw2("Time Entry", Round(((MajorElements + ((i * 12) + 2)) / TotalElements) * 100, 0), "Loop #" & loopCount + 1 & ", Row #" & (i + 1) & " of " & TotalRows, Round((2 / 12) * 100, 0))
                         objElement.SendKeys ("") 'set focus to this element
-                        If Not (objElement.Value = UCase(theChargeObj)) Then
+                        If Not (objElement.Value = VBA.UCase(theChargeObj)) Then
                             If Not (objElement.Value = "") Then
                                 objElement.Clear
                             End If
@@ -697,7 +697,7 @@ Sub SB_EnterChargeObj_TEMPO(driver As WebDriver, rowIndex As Integer, theChargeO
                         'Status Bar
                         sBar = StatusBar_Draw2("Time Entry", Round(((MajorElements + ((i * 12) + 3)) / TotalElements) * 100, 0), "Loop #" & loopCount + 1 & ", Row #" & (i + 1) & " of " & TotalRows, Round((3 / 12) * 100, 0))
                         objElement.SendKeys ("") 'set focus to this element
-                        If Not (objElement.Value = UCase(theExt)) Then
+                        If Not (objElement.Value = VBA.UCase(theExt)) Then
                             If Not (objElement.Value = "") Then
                                 objElement.Clear
                             End If
@@ -745,7 +745,7 @@ Sub SB_EnterChargeObj_TEMPO(driver As WebDriver, rowIndex As Integer, theChargeO
                             objElement.SendKeys ("") 'set focus to this element
                             ' UpTEMPO doesn't have a field for WPM
                             '  set WPM to blank, let user enter the correct code later if needed
-                            If Not (objElement.Value = UCase(theWPM)) Then
+                            If Not (objElement.Value = VBA.UCase(theWPM)) Then
                                 If Not (objElement.Value = "") Then
                                     objElement.Clear
                                 End If
@@ -767,7 +767,7 @@ Sub SB_EnterChargeObj_TEMPO(driver As WebDriver, rowIndex As Integer, theChargeO
                         'Status Bar
                         sBar = StatusBar_Draw2("Time Entry", Round(((MajorElements + ((i * 12) + 5)) / TotalElements) * 100, 0), "Loop #" & loopCount + 1 & ", Row #" & (i + 1) & " of " & TotalRows, Round((5 / 12) * 100, 0))
                         objElement.SendKeys ("") 'set focus to this element
-                        If Not (objElement.Value = UCase(theShift)) Then
+                        If Not (objElement.Value = VBA.UCase(theShift)) Then
                             If Not (objElement.Value = "") Then
                                 objElement.Clear
                             End If
@@ -779,10 +779,10 @@ Sub SB_EnterChargeObj_TEMPO(driver As WebDriver, rowIndex As Integer, theChargeO
                 End If
             ElseIf state = 6 Then   'next input field is TVL
                 If (objElement.tagname = "div") Then
-                    If (InStr(objElement.Attribute("class"), "sapMCbMark") > 0) Then
+                    If (VBA.InStr(objElement.Attribute("class"), "sapMCbMark") > 0) Then
                         state = 7
                         j = 0
-                        If Not ((InStr(objElement.Attribute("class"), "sapMCbMarkChecked") > 0) = bTVL) Then
+                        If Not ((VBA.InStr(objElement.Attribute("class"), "sapMCbMarkChecked") > 0) = bTVL) Then
                             objElement.Click
                             Call SB_Wait(driver, SingleDelay)
                         End If
@@ -863,7 +863,7 @@ Function SB_VerifyChargeObj_TEMPO(driver As WebDriver, rowIndex As Integer, theC
     For SB_elementIndex = SB_elementIndex To SB_numElements
         Set objElement = driver.FindElementsByXPath("//span[@title='Delete Line'] | //span[@title='Add Line'] | //input")(SB_elementIndex)
         On Error Resume Next
-            CellNum = Right(objElement.Attribute("tabindex"), 2)
+            CellNum = VBA.Right(objElement.Attribute("tabindex"), 2)
         On Error GoTo 0
         If Debug_Warn Then
             Debug.Print objElement.tagname, objElement.Attribute("title")
@@ -893,9 +893,9 @@ Function SB_VerifyChargeObj_TEMPO(driver As WebDriver, rowIndex As Integer, theC
                     'Status Bar
                     sBar = StatusBar_Draw2("Time Entry Check", Round(((MajorElements + ((rowIndex * 12) + 2)) / TotalElements) * 100, 0), "Loop #" & loopCount + 1 & ", Row #" & (rowIndex + 1) & " of " & TotalRows, Round((2 / 12) * 100, 0))
                     objElement.SendKeys ("") 'set focus to this element (so user knows something is happening)
-                    If Not (objElement.Value = UCase(theChargeObj)) Then
+                    If Not (objElement.Value = VBA.UCase(theChargeObj)) Then
                         matches = False
-                        SB_mismatch = "Mismatch: Charge Object " & objElement.Value & " <> " & UCase(theChargeObj)
+                        SB_mismatch = "Mismatch: Charge Object " & objElement.Value & " <> " & VBA.UCase(theChargeObj)
                         If Debug_Warn Then Debug.Print SB_mismatch
                         Exit For
                     End If
@@ -917,9 +917,9 @@ Function SB_VerifyChargeObj_TEMPO(driver As WebDriver, rowIndex As Integer, theC
                     End If
                     'Status Bar
                     sBar = StatusBar_Draw2("Time Entry Check", Round(((MajorElements + ((rowIndex * 12) + 3)) / TotalElements) * 100, 0), "Loop #" & loopCount + 1 & ", Row #" & (rowIndex + 1) & " of " & TotalRows, Round((3 / 12) * 100, 0))
-                    If Not (objElement.Value = UCase(theExt)) Then
+                    If Not (objElement.Value = VBA.UCase(theExt)) Then
                         matches = False
-                        SB_mismatch = "Mismatch: Ext " & objElement.Value & " <> " & UCase(theExt)
+                        SB_mismatch = "Mismatch: Ext " & objElement.Value & " <> " & VBA.UCase(theExt)
                         If Debug_Warn Then Debug.Print SB_mismatch
                         Exit For
                     End If
@@ -953,7 +953,7 @@ Function SB_VerifyChargeObj_TEMPO(driver As WebDriver, rowIndex As Integer, theC
                      sBar = StatusBar_Draw2("Time Entry Check", Round(((MajorElements + ((rowIndex * 12) + 4)) / TotalElements) * 100, 0), "Loop #" & loopCount + 1 & ", Row #" & (rowIndex + 1) & " of " & TotalRows, Round((4 / 12) * 100, 0))
                     ' UpTEMPO doesn't have a field for WPM
                     '  set WPM to blank, let user enter the correct code later if needed
-                    If Not (objElement.Value = UCase(theWPM)) Then
+                    If Not (objElement.Value = VBA.UCase(theWPM)) Then
                         matches = False
                         SB_mismatch = "Mismatch: WPM " & objElement.Value & " not empty"
                         If Debug_Warn Then Debug.Print SB_mismatch
@@ -1031,7 +1031,7 @@ Sub SB_Check_WD_Job(driver As WebDriver)
         Found = False
         For Each objElement In driver.FindElementsByXPath("//label")
             If Debug_Warn Then Debug.Print objElement.tagname, objElement.Text
-            If (UCase(Trim(objElement.Text)) = "WD JOB") Then
+            If (VBA.UCase(VBA.Trim(objElement.Text)) = "WD JOB") Then
                 Found = True
                 Exit For
             End If
@@ -1056,7 +1056,7 @@ Sub SB_Check_WPM(driver As WebDriver)
         Found = False
         For Each objElement In driver.FindElementsByXPath("//bdi")
             If Debug_Warn Then Debug.Print objElement.tagname, objElement.Text
-            If (UCase(Trim(objElement.Text)) = "WPM") Then
+            If (VBA.UCase(VBA.Trim(objElement.Text)) = "WPM") Then
                 Found = True
                 Exit For
             End If
@@ -1081,7 +1081,7 @@ Sub SB_Check_TVL(driver As WebDriver)
         Found = False
         For Each objElement In driver.FindElementsByXPath("//label")
             If Debug_Warn Then Debug.Print objElement.tagname, objElement.Text
-            If (UCase(Trim(objElement.Text)) = "TVL") Then
+            If (VBA.UCase(VBA.Trim(objElement.Text)) = "TVL") Then
                 Found = True
                 Exit For
             End If
@@ -1102,21 +1102,21 @@ Sub SB_EnterDaysOff_TEMPO(driver As WebDriver, dayName As String, theDate As Str
     Dim state As Integer
     Dim result As Integer
 
-    dayNumStr = Format(theDate, "d")
+    dayNumStr = VBA.Format(theDate, "d")
     state = 0
     For Each objElement In driver.FindElementsByXPath("//label | //bdi | //button")
         If Debug_Warn Then Debug.Print objElement.tagname, objElement.Text
         If state = 0 Then   'look for label with the day name: tagName "LABEL" with innerText "Fri", for example
             If (objElement.tagname = "label") Or _
                (objElement.tagname = "bdi") Then
-                If (UCase(Trim(objElement.Text)) = UCase(dayName)) Then
+                If (VBA.UCase(VBA.Trim(objElement.Text)) = VBA.UCase(dayName)) Then
                     state = 1
                 End If
             End If
         ElseIf state = 1 Then   'next label element must have correct day number
             If (objElement.tagname = "label") Or _
                (objElement.tagname = "bdi") Then
-                If (Trim(objElement.Text) = dayNumStr) Then
+                If (VBA.Trim(objElement.Text) = dayNumStr) Then
                     state = 2
                 Else
                     state = 0
@@ -1126,7 +1126,7 @@ Sub SB_EnterDaysOff_TEMPO(driver As WebDriver, dayName As String, theDate As Str
             If (objElement.tagname = "button") Then
                 state = 3
                 If (objElement.Text = "") Or _
-                   (UCase(Trim(objElement.Text)) = UCase(dayName)) Then
+                   (VBA.UCase(VBA.Trim(objElement.Text)) = VBA.UCase(dayName)) Then
                     'button is On - textContent is empty or contains the day name (as a tooltip)
                     If dayOffValue = "" Then 'desired value is On
                         'already On, nothing to do
@@ -1161,7 +1161,7 @@ Function SB_VerifyDaysOff_TEMPO(driver As WebDriver, dayName As String, theDate 
     Dim result As Integer
     Dim matches As Boolean
 
-    dayNumStr = Format(theDate, "d")
+    dayNumStr = VBA.Format(theDate, "d")
     state = 0
     matches = False
     For Each objElement In driver.FindElementsByXPath("//label | //bdi | //button")
@@ -1169,14 +1169,14 @@ Function SB_VerifyDaysOff_TEMPO(driver As WebDriver, dayName As String, theDate 
         If state = 0 Then   'look for label with the day name: tagName "LABEL" with innerText "Fri", for example
             If (objElement.tagname = "label") Or _
                (objElement.tagname = "bdi") Then
-                If (UCase(Trim(objElement.Text)) = UCase(dayName)) Then
+                If (VBA.UCase(VBA.Trim(objElement.Text)) = VBA.UCase(dayName)) Then
                     state = 1
                 End If
             End If
         ElseIf state = 1 Then   'next label element must have correct day number
             If (objElement.tagname = "label") Or _
                (objElement.tagname = "bdi") Then
-                If (Trim(objElement.Text) = dayNumStr) Then
+                If (VBA.Trim(objElement.Text) = dayNumStr) Then
                     state = 2
                 Else
                     state = 0
@@ -1186,7 +1186,7 @@ Function SB_VerifyDaysOff_TEMPO(driver As WebDriver, dayName As String, theDate 
             If (objElement.tagname = "button") Then
                 state = 3
                 If (objElement.Text = "") Or _
-                   (UCase(Trim(objElement.Text)) = UCase(dayName)) Then
+                   (VBA.UCase(VBA.Trim(objElement.Text)) = VBA.UCase(dayName)) Then
                     'button is On - textContent is empty or contains the day name (as a tooltip)
                     If dayOffValue = "" Then 'desired value is On
                         matches = True
@@ -1230,14 +1230,14 @@ Function SB_GetWEDate_TEMPO(driver As WebDriver) As Date
         If state = 0 Then   'look for Payroll W/E label: tagName "LABEL" with innerText "Payroll W/E:"
             If (objElement.tagname = "label") Or _
                (objElement.tagname = "bdi") Then
-                If (Trim(objElement.Text) = "Payroll W/E:") Then
+                If (VBA.Trim(objElement.Text) = "Payroll W/E:") Then
                     state = 1
                 End If
             End If
         ElseIf state = 1 Then   'grab next input field to get date: tagName "INPUT"
             If (objElement.tagname = "input") Then
                 state = 2
-                theDate = CDate(Trim(objElement.Value))
+                theDate = CDate(VBA.Trim(objElement.Value))
                 Exit For
             End If
         End If
@@ -1309,8 +1309,8 @@ Function SB_WhatsRunning(driver As WebDriver) As String
         SB_WhatsRunning = "TEMPO Logged Off Page"
         Exit Function
     End If
-    If Len(SB_URL) > Len(URL_TEMPO) Then
-        If Left(SB_URL, Len(URL_TEMPO)) = URL_TEMPO Then
+    If VBA.Len(SB_URL) > VBA.Len(URL_TEMPO) Then
+        If VBA.Left(SB_URL, VBA.Len(URL_TEMPO)) = URL_TEMPO Then
             SB_WhatsRunning = "TEMPO Other Page"
             Exit Function
         End If
@@ -1330,4 +1330,4 @@ Sub SB_Finish()
 End Sub
 
 'Code Module SHA-512
-'''8a9a642037096d5f0c53b12a6d267bb42979564789062e80f539088e345ea8eec6f9d1ec4be144ed05985d7b65167b07b12d6d03b9fa732e45352d6f5648d958
+'''d3e57b5b9b1c00f212279f0e39bed1c9ede68425a10c9638af98184ab49b90f9d8d1e869a8704132900351c8d0ce03304f841b9d3b04f1c20154aff37aae0168

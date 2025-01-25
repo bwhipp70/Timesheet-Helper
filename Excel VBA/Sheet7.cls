@@ -4,6 +4,8 @@ Private Sub Worksheet_Change(ByVal Target As Range)
     
     Dim KeyCells As Range
     Dim KeyCells2 As Range
+    ' 4.04 - Added Dim statement
+    Dim Config_WP_lastrow As Integer
 
     ' The variable KeyCells contains the cells that will
     ' cause an alert when they are changed.

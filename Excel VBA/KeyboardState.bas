@@ -70,7 +70,7 @@ Sub Set_Keyboard_States()
     Dim o As OSVERSIONINFO
     Dim keys(0 To 255) As Byte
 
-    o.dwOSVersionInfoSize = Len(o)
+    'o.dwOSVersionInfoSize = VBA.Len(o)
     GetVersionEx o
     GetKeyboardState keys(0)
     If o.dwPlatformId = VER_PLATFORM_WIN32_WINDOWS Then 'Win95/98
@@ -104,4 +104,4 @@ Sub Set_Keyboard_States()
 End Sub
 
 'Code Module SHA-512
-'''9e622baf6a80e3fc60f18d3cfbc647dbcaac96593d46f7e8109afdd3735c1c45e0c1fd1f0a2414faae927bba7ea2d62af88c619134820f5c6de3c5bef9a39968
+'''c664cc7b700fba57851a7fe41eae7a1aebb77a54c87813c668e76c97ec1b470729a7444dd2455f07f770c89a3721e09bf9d85eedfd8b0789e923681f28d05923

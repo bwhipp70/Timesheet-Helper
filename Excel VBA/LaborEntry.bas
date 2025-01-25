@@ -84,10 +84,10 @@ Sub LE_EnterLabor(CallingSheet)
         result = MsgBox("This feature has been disabled.", vbExclamation)
         End
     End If
-    result = MsgBox("This is for Educational Purposes ONLY!" & Chr(13) & _
+    result = MsgBox("This is for Educational Purposes ONLY!" & VBA.Chr(13) & _
                     "DO NOT USE THIS TO ENTER YOUR OFFICIAL TIMECARD!", vbExclamation)
     If Not CheckAllHash Then
-        result = MsgBox("The Macro Code has been corrupted!" & Chr(13) & _
+        result = MsgBox("The Macro Code has been corrupted!" & VBA.Chr(13) & _
                         "Please grab the released file, import, and try again.", vbExclamation)
         End
     End If
@@ -146,4 +146,4 @@ Function LE_GetSetValue(rangeName, defaultValue)
 End Function
 
 'Code Module SHA-512
-'''1a97961ffa86e022dd1bc4c528edb602fb17b17809c12fb7af1f0f6ae1b1a9c442427775ecdf67dbffe3edc3b1a41d497e5a73016ac779fb9e0cf8a2560c9611
+'''a9269fc34f046372478cda00940361fff50ea6b1e03b43ba2e73851c51db481865ad935e3e420a82146706c3709ab4ec6c5f4c2a8d125e2320edcedcb83a0e01
