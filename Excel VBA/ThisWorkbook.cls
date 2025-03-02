@@ -47,14 +47,18 @@ Private Sub Workbook_BeforeSave(ByVal SaveAsUI As Boolean, Cancel As Boolean)
 Dim fileSaveName
     'Store the active sheet name and select the Macro Warning sheet
     Show_Macro_Warning
+    
+    ' This next section of code was cuasing Error 400 pop ups when other Excel files were open.
+    ' Commenting out since we are well past Excel 2007.
+    
     'Excel 2007 and before do not have an AfterSave event
     'The following idea was found at http://www.vbforums.com/showthread.php?t=524692
     ' See response #16 from DrillRaider on Sep 24th 2010 at 12:38 PM
     'Set up timed call to AfterSave routine (will run after normal save is complete!)
     'But only do this if we're saving without closing, otherwise Excel will re-open the workbook!
-    If Not isClosing Then
-        Application.OnTime Now, "ThisWorkbook.AfterSave"
-    End If
+    'If Not isClosing Then
+    '    Application.OnTime Now, "ThisWorkbook.AfterSave"
+    'End If
     'Allow the normal save routines to work
 End Sub
 '
@@ -298,4 +302,4 @@ NoSelenium:
 End Sub
 
 'Code Module SHA-512
-'''fcc08682a03c595285c6028a270c42212bc32cf4a786d9581f90031afcc62ab9a44f59d0e4528ca75083653b3bd9a1f9acaec3dbb7643518172d3c53d54baed2
+'''e2c6cb92bfd4d9ff519471c6552f75187346af5b0c8a0ed9e39a2fed6f1edeb162cce3f9d5f8f6ccddaee5950708bef6a6fded95ad8c0a86ea40d1f5579c9f7e
